@@ -14,13 +14,15 @@ use App\Http\Controllers\FleetManagementController;
 use App\Http\Controllers\TransportManagementController;
 use App\Http\Controllers\VehicleMaintenanceController;
 use App\Http\Controllers\ExpenseTrackingController;
-use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\GeographyController;
 use App\Http\Controllers\PerformanceReportController;
 use App\Http\Controllers\AdminPanelController;
 use App\Http\Controllers\UtilitiesToolsController;
 use App\Http\Controllers\HelpCenterController;
 use App\Http\Controllers\MyAssistanceController;
+use App\Http\Controllers\NewConsignmentController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -42,6 +44,9 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'destroy' => 'admin.team-members.destroy'
     ]);
 
+    // Team Member Status Toggle
+    Route::post('team-members/{id}/toggle-status', [TeamMemberController::class, 'toggleStatus'])->name('admin.team-members.toggle-status');
+
     // Driving Team Management
     Route::resource('driving-team', DrivingTeamController::class)->names([
         'index' => 'admin.driving-team.index',
@@ -52,6 +57,9 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'update' => 'admin.driving-team.update',
         'destroy' => 'admin.driving-team.destroy'
     ]);
+
+    // KYC Approval Route
+    Route::post('driving-team/{id}/approve-kyc', [DrivingTeamController::class, 'approveKyc'])->name('admin.driving-team.approve-kyc');
 
     // Billing Entities
     Route::resource('billing-entities', BillingEntityController::class)->names([
@@ -74,6 +82,15 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'update' => 'admin.vehicle-monitoring.update',
         'destroy' => 'admin.vehicle-monitoring.destroy'
     ]);
+
+    // Individual Vehicle Details
+    Route::get('vehicle-monitoring/vehicle/{id}', [VehicleMonitoringController::class, 'showVehicle'])->name('admin.vehicle-monitoring.show-vehicle');
+
+    // Vehicle Status Update
+    Route::put('vehicle-monitoring/{id}/status', [VehicleMonitoringController::class, 'updateStatus'])->name('admin.vehicle-monitoring.update-status');
+
+    // Driver Status Update
+    Route::put('vehicle-monitoring/driver/{id}/status', [VehicleMonitoringController::class, 'updateDriverStatus'])->name('admin.vehicle-monitoring.update-driver-status');
 
     // Peak Accounts
     Route::resource('peak-accounts', PeakAccountController::class)->names([
@@ -152,18 +169,13 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'destroy' => 'admin.expense-tracking.destroy'
     ]);
 
-    // Attendance Records
-    Route::resource('attendance-records', AttendanceRecordController::class)->names([
-        'index' => 'admin.attendance-records.index',
-        'create' => 'admin.attendance-records.create',
-        'store' => 'admin.attendance-records.store',
-        'show' => 'admin.attendance-records.show',
-        'edit' => 'admin.attendance-records.edit',
-        'update' => 'admin.attendance-records.update',
-        'destroy' => 'admin.attendance-records.destroy'
-    ]);
 
     // Geography
+    Route::get('geography/cities', [GeographyController::class, 'cities'])->name('admin.geography.cities');
+    Route::get('geography/hubs', [GeographyController::class, 'hubs'])->name('admin.geography.hubs');
+    Route::post('geography/{id}/toggle-status', [GeographyController::class, 'toggleStatus'])->name('admin.geography.toggle-status');
+    Route::post('cities/{id}/toggle-status', [GeographyController::class, 'toggleCityStatus'])->name('admin.cities.toggle-status');
+    Route::post('hubs/{id}/toggle-status', [GeographyController::class, 'toggleHubStatus'])->name('admin.hubs.toggle-status');
     Route::resource('geography', GeographyController::class)->names([
         'index' => 'admin.geography.index',
         'create' => 'admin.geography.create',
@@ -173,6 +185,33 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'update' => 'admin.geography.update',
         'destroy' => 'admin.geography.destroy'
     ]);
+
+    // Countries
+    Route::get('countries', [GeographyController::class, 'index'])->name('admin.countries.index');
+    Route::get('countries/create', [GeographyController::class, 'createCountry'])->name('admin.countries.create');
+    Route::post('countries', [GeographyController::class, 'storeCountry'])->name('admin.countries.store');
+    Route::get('countries/{id}', [GeographyController::class, 'showCountry'])->name('admin.countries.show');
+    Route::get('countries/{id}/edit', [GeographyController::class, 'editCountry'])->name('admin.countries.edit');
+    Route::put('countries/{id}', [GeographyController::class, 'updateCountry'])->name('admin.countries.update');
+    Route::delete('countries/{id}', [GeographyController::class, 'destroyCountry'])->name('admin.countries.destroy');
+
+    // Cities
+    Route::get('cities/create', [GeographyController::class, 'createCity'])->name('admin.cities.create');
+    Route::post('cities', [GeographyController::class, 'storeCity'])->name('admin.cities.store');
+    Route::get('cities/{id}', [GeographyController::class, 'showCity'])->name('admin.cities.show');
+    Route::get('cities/{id}/edit', [GeographyController::class, 'editCity'])->name('admin.cities.edit');
+    Route::put('cities/{id}', [GeographyController::class, 'updateCity'])->name('admin.cities.update');
+    Route::delete('cities/{id}', [GeographyController::class, 'destroyCity'])->name('admin.cities.destroy');
+
+    // Hubs
+    Route::get('hubs/create', [GeographyController::class, 'createHub'])->name('admin.hubs.create');
+    Route::post('hubs', [GeographyController::class, 'storeHub'])->name('admin.hubs.store');
+    Route::get('hubs/{id}', [GeographyController::class, 'showHub'])->name('admin.hubs.show');
+    Route::get('hubs/{id}/edit', [GeographyController::class, 'editHub'])->name('admin.hubs.edit');
+    Route::put('hubs/{id}', [GeographyController::class, 'updateHub'])->name('admin.hubs.update');
+    Route::delete('hubs/{id}', [GeographyController::class, 'destroyHub'])->name('admin.hubs.destroy');
+    Route::get('hubs-by-country/{countryId}', [GeographyController::class, 'getHubsByCountry'])->name('admin.hubs.by-country');
+    Route::get('cities-by-country/{countryId}', [GeographyController::class, 'getCitiesByCountry'])->name('admin.cities.by-country');
 
     // Performance Reports
     Route::resource('performance-reports', PerformanceReportController::class)->names([
@@ -228,6 +267,50 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'update' => 'admin.my-assistance.update',
         'destroy' => 'admin.my-assistance.destroy'
     ]);
+
+    // New Consignment
+    Route::resource('new-consignment', NewConsignmentController::class)->names([
+        'index' => 'admin.new-consignment.index',
+        'create' => 'admin.new-consignment.create',
+        'store' => 'admin.new-consignment.store',
+        'show' => 'admin.new-consignment.show',
+        'edit' => 'admin.new-consignment.edit',
+        'update' => 'admin.new-consignment.update',
+        'destroy' => 'admin.new-consignment.destroy'
+    ]);
+
+    // Brands Management
+    Route::resource('brands', BrandController::class)->names([
+        'index' => 'admin.brands.index',
+        'create' => 'admin.brands.create',
+        'store' => 'admin.brands.store',
+        'show' => 'admin.brands.show',
+        'edit' => 'admin.brands.edit',
+        'update' => 'admin.brands.update',
+        'destroy' => 'admin.brands.destroy'
+    ]);
+
+    // Role Management
+    Route::resource('roles', RoleController::class)->names([
+        'index' => 'admin.roles.index',
+        'create' => 'admin.roles.create',
+        'store' => 'admin.roles.store',
+        'show' => 'admin.roles.show',
+        'edit' => 'admin.roles.edit',
+        'update' => 'admin.roles.update',
+        'destroy' => 'admin.roles.destroy'
+    ]);
+
+    // Freight & Assignment
+    Route::get('freight-assignment', [NewConsignmentController::class, 'freightAssignment'])->name('admin.freight-assignment.index');
+    Route::post('freight-assignment', [NewConsignmentController::class, 'storeFreightAssignment'])->name('admin.freight-assignment.store');
+
+    // Charges & Advance
+    Route::get('charges-advance', [NewConsignmentController::class, 'chargesAdvance'])->name('admin.charges-advance.index');
+    Route::post('charges-advance', [NewConsignmentController::class, 'storeChargesAdvance'])->name('admin.charges-advance.store');
+
+    // Booking Confirmed
+    Route::get('booking-confirmed', [NewConsignmentController::class, 'bookingConfirmed'])->name('admin.booking-confirmed.index');
 
     // Logout
     Route::post('/logout', function () {
