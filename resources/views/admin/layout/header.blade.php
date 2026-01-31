@@ -794,8 +794,30 @@
             // Add active class to the matching nav link
             document.querySelectorAll('.nav-link').forEach(function(link) {
                 const linkPath = link.getAttribute('href');
-                if (linkPath && currentPath.includes(linkPath.split('/').pop())) {
-                    link.classList.add('active');
+                if (linkPath) {
+                    // Check for exact route match or proper segment match
+                    const routeName = linkPath.split('/').pop();
+                    
+                    // Special handling for new-consignment routes
+                    if (currentPath.includes('new-consignment') && 
+                        (routeName === 'index' || routeName === 'create')) {
+                        if (linkPath.includes('new-consignment')) {
+                            link.classList.add('active');
+                        }
+                    }
+                    // Special handling for consignment routes
+                    else if (currentPath.includes('/admin/consignment') && 
+                             (routeName === 'index' || routeName === 'show')) {
+                        if (linkPath.includes('/admin/consignment')) {
+                            link.classList.add('active');
+                        }
+                    }
+                    // General route matching
+                    else if (currentPath === linkPath || 
+                             currentPath.includes(linkPath + '/') ||
+                             (routeName && currentPath.endsWith('/' + routeName))) {
+                        link.classList.add('active');
+                    }
                 }
             });
         });
@@ -822,11 +844,18 @@
                 </li>
 
                  <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
-                        <i class="fas fa-box-open"></i>
-                        <span class="nav-text">New Consignment</span>
-                    </a>
-                </li>
+                       <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
+                           <i class="fas fa-plus-circle"></i>
+                           <span class="nav-text">New Consignment</span>
+                       </a>
+                   </li>
+
+                  <li class="nav-item">
+                      <a class="nav-link" href="{{ route('admin.consignment.index') }}">
+                          <i class="fas fa-truck"></i>
+                          <span class="nav-text">Consignment</span>
+                      </a>
+                  </li>
                 
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.team-members.index') }}">

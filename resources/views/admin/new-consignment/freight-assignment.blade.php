@@ -495,10 +495,23 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .vehicle-card:hover {
+        box-shadow: 0 4px 12px rgba(51, 193, 127, 0.3);
+        transform: translateY(-2px);
     }
 
     .vehicle-card.yellow {
         border-color: #F4CE5B;
+    }
+
+    .vehicle-card.selected {
+        border-color: #317FF1;
+        background: #f0f7ff;
+        box-shadow: 0 4px 12px rgba(49, 127, 241, 0.3);
     }
 
     .vehicle-image-container {
@@ -647,6 +660,10 @@
     <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    @if (session('error'))
+    <div class="alert alert-error">{{ session('error') }}</div>
+    @endif
+
     @if ($errors->any())
     <div class="alert alert-error">
         <ul>
@@ -657,7 +674,7 @@
     </div>
     @endif
 
-    <form class="consignment-form" method="POST" action="{{ route('admin.charges-advance.index') }}">
+    <form class="consignment-form" method="POST" action="{{ route('admin.freight-assignment.store') }}">
         @csrf
         
         <!-- Logistics Information Section -->
@@ -669,31 +686,31 @@
         <div class="logistics-grid">
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Party LR No <span class="required">*</span></label>
-                <input type="text" name="party_lr_no" value="{{ old('party_lr_no', '1344') }}" placeholder="1344" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="party_lr_no" value="{{ old('party_lr_no', $transport->party_lr_no) }}" placeholder="Enter Party LR No" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">No. of Packages <span class="required">*</span></label>
-                <input type="text" name="packages" value="{{ old('packages', '50') }}" placeholder="50" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="packages" value="{{ old('packages', $transport->packages) }}" placeholder="Enter number of packages" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Weight (In Tons) <span class="required">*</span></label>
-                <input type="text" name="weight" value="{{ old('weight', '2') }}" placeholder="2" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="weight" value="{{ old('weight', $transport->weight) }}" placeholder="Enter weight in tons" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Invoice No. <span class="required">*</span></label>
-                <input type="text" name="invoice_no" value="{{ old('invoice_no', 'INV - 113344') }}" placeholder="INV - 113344" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="invoice_no" value="{{ old('invoice_no', $transport->invoice_no) }}" placeholder="Enter invoice number" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Invoice Value <span class="required">*</span></label>
-                <input type="text" name="invoice_value" value="{{ old('invoice_value', 'QR 10,000') }}" placeholder="QR 10,000" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="invoice_value" value="{{ old('invoice_value', $transport->invoice_value) }}" placeholder="Enter invoice value" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Trip Type <span class="required">*</span></label>
                 <div class="select-wrapper">
                     <select name="trip_type" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
-                        <option value="FTL" selected>FTL</option>
-                        <option value="LTL">LTL</option>
-                        <option value="Express">Express</option>
+                        <option value="FTL" {{ (old('trip_type', $transport->trip_type ?? '') == 'FTL') ? 'selected' : '' }}>FTL</option>
+                        <option value="LTL" {{ (old('trip_type', $transport->trip_type ?? '') == 'LTL') ? 'selected' : '' }}>LTL</option>
+                        <option value="Express" {{ (old('trip_type', $transport->trip_type ?? '') == 'Express') ? 'selected' : '' }}>Express</option>
                     </select>
                     <svg width="10" height="7" viewBox="0 0 10 7" fill="none" style="position: absolute; right: 12px; top: 69%; transform: translateY(-50%);"><path d="M1 1l4 4 4-4" stroke="#6C6C6C" stroke-width="1.5"/></svg>
                 </div>
@@ -714,9 +731,9 @@
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Required Vehicle Type</label>
                         <div class="select-wrapper">
                             <select name="vehicle_type" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
-                                <option value="Toyota Hilux" selected>Toyota Hilux</option>
-                                <option value="Isuzu D-Max">Isuzu D-Max</option>
-                                <option value="Ford Ranger">Ford Ranger</option>
+                                @foreach($vehicles->unique('vehicle_type') as $vehicle)
+                                    <option value="{{ $vehicle->vehicle_type }}" {{ old('vehicle_type', $transport->vehicle_type ?? '') == $vehicle->vehicle_type ? 'selected' : '' }}>{{ $vehicle->vehicle_type }}</option>
+                                @endforeach
                             </select>
                             <svg width="10" height="7" viewBox="0 0 10 7" fill="none" style="position: absolute; right: 12px; top: 69%; transform: translateY(-50%);"><path d="M1 1l4 4 4-4" stroke="#6C6C6C" stroke-width="1.5"/></svg>
                         </div>
@@ -725,8 +742,9 @@
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Assigned Vehicle No</label>
                         <div class="select-wrapper">
                             <select name="assigned_vehicle_no" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
-                                <option value="QTR-HLX-1021" selected>QTR-HLX-1021</option>
-                                <option value="QTR-DMX-5042">QTR-DMX-5042</option>
+                                @foreach($vehicles as $vehicle)
+                                    <option value="{{ $vehicle->vehicle_number }}" {{ old('assigned_vehicle_no', $transport->assigned_vehicle_no ?? '') == $vehicle->vehicle_number ? 'selected' : '' }}>{{ $vehicle->vehicle_number }}</option>
+                                @endforeach
                             </select>
                             <svg width="10" height="7" viewBox="0 0 10 7" fill="none" style="position: absolute; right: 12px; top: 69%; transform: translateY(-50%);"><path d="M1 1l4 4 4-4" stroke="#6C6C6C" stroke-width="1.5"/></svg>
                         </div>
@@ -735,22 +753,22 @@
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Assigned Driver</label>
                         <div class="select-wrapper">
                             <select name="assigned_driver" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
-                                <option value="Rehman" selected>Rehman</option>
-                                <option value="Ahmed">Ahmed</option>
-                                <option value="Fahad">Fahad</option>
+                                @foreach($vehicles->whereNotNull('driver')->unique('driver_id') as $vehicle)
+                                    <option value="{{ $vehicle->driver->name ?? 'N/A' }}" {{ old('assigned_driver', $transport->assigned_driver ?? '') == ($vehicle->driver->name ?? '') ? 'selected' : '' }}>{{ $vehicle->driver->name ?? 'N/A' }}</option>
+                                @endforeach
                             </select>
                             <svg width="10" height="7" viewBox="0 0 10 7" fill="none" style="position: absolute; right: 12px; top: 69%; transform: translateY(-50%);"><path d="M1 1l4 4 4-4" stroke="#6C6C6C" stroke-width="1.5"/></svg>
                         </div>
                     </div>
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Assigned Driver ID</label>
-                        <input type="text" name="assigned_driver_id" value="{{ old('assigned_driver_id', '44') }}" placeholder="44" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                        <input type="text" name="assigned_driver_id" value="{{ old('assigned_driver_id', $transport->assigned_driver_id ?? '') }}" placeholder="44" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-top: 10px;">
                     <label style="font-size: 16px; font-weight: 500; color: #313131;">Handling / Permit Instructions</label>
-                    <input type="text" name="handling_instructions" value="{{ old('handling_instructions', 'Fragile, Handle With Care') }}" placeholder="Fragile, Handle With Care" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                    <input type="text" name="handling_instructions" value="{{ old('handling_instructions', $transport->handling_instructions) }}" placeholder="Enter handling instructions" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
                 </div>
             </div>
 
@@ -792,43 +810,29 @@
                     <h3>Available Vehicles</h3>
                 </div>
                 <div class="vehicle-list">
-                    <!-- Toyota Hilux -->
-                    <div class="vehicle-card">
+                    @foreach($vehicles as $vehicle)
+                    <div class="vehicle-card" data-vehicle-type="{{ $vehicle->vehicle_type }}" data-vehicle-number="{{ $vehicle->vehicle_number }}" data-driver-name="{{ $vehicle->driver->name ?? '' }}" data-driver-id="{{ $vehicle->driver->id ?? '' }}">
                         <div class="vehicle-image-container">
-                            <img src="{{ asset('images/freight-assignment/toyota-hilux.png') }}" alt="Toyota Hilux" class="vehicle-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22160%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22140%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2216%22 fill=%22%236C6C6C%22 text-anchor=%22middle%22 dy=%22.3em%22%3EToyota Hilux%3C/text%3E%3C/svg%3E'">
+                            @if($vehicle->image_path)
+                                <img src="{{ asset($vehicle->image_path) }}" alt="{{ $vehicle->model }}" class="vehicle-image" onerror="this.src='{{ asset('images/Truck delivery service.png') }}'">
+                            @else
+                                <img src="{{ asset('images/Truck delivery service.png') }}" alt="{{ $vehicle->model }}" class="vehicle-image">
+                            @endif
                         </div>
                         <div class="vehicle-details">
-                            <h4 class="vehicle-name">Toyota Hilux</h4>
+                            <h4 class="vehicle-name">{{ $vehicle->brand }} {{ $vehicle->model }}</h4>
                             <div class="vehicle-specs">
-                                <p class="vehicle-spec-item">Fuel : Diesel</p>
-                                <p class="vehicle-spec-item">Mileage : 13 Km/L</p>
-                                <p class="vehicle-spec-item">Weight Capacity : 2000 Kg</p>
+                                <p class="vehicle-spec-item">Fuel : {{ $vehicle->fuel_type }}</p>
+                                <p class="vehicle-spec-item">Mileage : {{ $vehicle->average }} Km/L</p>
+                                <p class="vehicle-spec-item">Weight Capacity : {{ $vehicle->max_weight }} Kg</p>
                             </div>
                             <div class="vehicle-location">
-                                <p style="font-weight: 400;">134 Kms Away From Pickup Location</p>
-                                <p style="font-weight: 400;">On Route To Sharjah 213 Kms Away From Your Destination</p>
+                                <p style="font-weight: 400;">{{ $vehicle->vehicle_number }}</p>
+                                <p style="font-weight: 400;">Status: {{ $vehicle->status }}</p>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Isuzu D-Max -->
-                    <div class="vehicle-card yellow">
-                        <div class="vehicle-image-container">
-                            <img src="{{ asset('images/freight-assignment/isuzu-dmax.png') }}" alt="Isuzu D-Max" class="vehicle-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22160%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22140%22 height=%22160%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2216%22 fill=%22%236C6C6C%22 text-anchor=%22middle%22 dy=%22.3em%22%3EIsuzu D-Max%3C/text%3E%3C/svg%3E'">
-                        </div>
-                        <div class="vehicle-details">
-                            <h4 class="vehicle-name">Isuzu D-max</h4>
-                            <div class="vehicle-specs">
-                                <p class="vehicle-spec-item">Fuel : Diesel</p>
-                                <p class="vehicle-spec-item">Mileage : 9 Km/L</p>
-                                <p class="vehicle-spec-item">Weight Capacity : 4000 Kg</p>
-                            </div>
-                            <div class="vehicle-location">
-                                <p style="font-weight: 400;">263 Kms Away From Pickup Location</p>
-                                <p style="font-weight: 400;">On Route To Dubai 134 Kms Away From Your Destination</p>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -838,6 +842,60 @@
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>
-</div>
-</div>
-@endsection
+ </div>
+ </div>
+
+ <script>
+ document.addEventListener('DOMContentLoaded', function() {
+     // Get all vehicle cards
+     const vehicleCards = document.querySelectorAll('.vehicle-card');
+     const vehicleTypeSelect = document.querySelector('select[name="vehicle_type"]');
+     const assignedVehicleNoSelect = document.querySelector('select[name="assigned_vehicle_no"]');
+     const assignedDriverSelect = document.querySelector('select[name="assigned_driver"]');
+     const assignedDriverIdInput = document.querySelector('input[name="assigned_driver_id"]');
+
+     // Add click event to each vehicle card
+     vehicleCards.forEach(card => {
+         card.addEventListener('click', function() {
+             // Remove selected class from all cards
+             vehicleCards.forEach(c => c.classList.remove('selected'));
+             // Add selected class to clicked card
+             this.classList.add('selected');
+
+             // Get vehicle data from data attributes
+             const vehicleType = this.getAttribute('data-vehicle-type');
+             const vehicleNumber = this.getAttribute('data-vehicle-number');
+             const driverName = this.getAttribute('data-driver-name');
+             const driverId = this.getAttribute('data-driver-id');
+
+             // Set values in form fields
+             if (vehicleTypeSelect) {
+                 vehicleTypeSelect.value = vehicleType;
+             }
+             if (assignedVehicleNoSelect) {
+                 assignedVehicleNoSelect.value = vehicleNumber;
+             }
+             if (assignedDriverSelect) {
+                 assignedDriverSelect.value = driverName || '';
+             }
+             if (assignedDriverIdInput) {
+                 assignedDriverIdInput.value = driverId || '';
+             }
+         });
+     });
+
+     // Also handle select change events to highlight matching card
+     if (assignedVehicleNoSelect) {
+         assignedVehicleNoSelect.addEventListener('change', function() {
+             const selectedVehicleNo = this.value;
+             vehicleCards.forEach(card => {
+                 if (card.getAttribute('data-vehicle-number') === selectedVehicleNo) {
+                     vehicleCards.forEach(c => c.classList.remove('selected'));
+                     card.classList.add('selected');
+                 }
+             });
+         });
+     }
+ });
+ </script>
+ @endsection

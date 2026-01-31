@@ -375,6 +375,31 @@
         margin: 0;
     }
 
+    /* Status Badge Styles */
+    .vehicle-status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        margin-top: 8px;
+    }
+
+    .status-available {
+        background-color: #D4EDDA;
+        color: #155724;
+    }
+
+    .status-not_available {
+        background-color: #F8D7DA;
+        color: #721C24;
+    }
+
+    .status-assigned {
+        background-color: #D1ECF1;
+        color: #0C5460;
+    }
+
     .no-vehicles {
         text-align: center;
         padding: 40px;
@@ -438,7 +463,7 @@
 <div class="dashboard-wrapper">
     <div class="vehicle-container-wrapper">
         <!-- Top Navigation Bar -->
-        <div class="top-navbar">
+        <!-- <div class="top-navbar">
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" placeholder="Search..">
@@ -463,7 +488,7 @@
                     <i class="fas fa-user"></i>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Vehicles Container -->
         <div class="vehicles-container">
@@ -542,6 +567,9 @@
                                     <div class="vehicle-details">
                                         <span class="vehicle-brand">{{ $brandName }}</span>
                                     </div>
+                                    <span class="vehicle-status-badge status-{{ $vehicle->status }}">
+                                        {{ ucfirst(str_replace('_', ' ', $vehicle->status)) }}
+                                    </span>
                                 </div>
                             </a>
                         @empty

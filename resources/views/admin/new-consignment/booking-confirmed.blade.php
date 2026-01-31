@@ -374,27 +374,27 @@
             <h3>Booking Details</h3>
             <div class="detail-row">
                 <span class="detail-label">Booking ID:</span>
-                <span class="detail-value">#CN{{ rand(10000, 99999) }}</span>
+                <span class="detail-value">#CN{{ $transport->id }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Consignment Type:</span>
-                <span class="detail-value">{{ session('consignment_type', 'LTL') }}</span>
+                <span class="detail-value">{{ $transport->trip_type ?? 'N/A' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Pickup Location:</span>
-                <span class="detail-value">{{ session('pickup_location', 'Not specified') }}</span>
+                <span class="detail-value">{{ $transport->pickup_location ?? 'N/A' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Delivery Location:</span>
-                <span class="detail-value">{{ session('delivery_location', 'Not specified') }}</span>
+                <span class="detail-value">{{ $transport->delivery_location ?? 'N/A' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Total Amount:</span>
-                <span class="detail-value">₹{{ session('total_amount', '0.00') }}</span>
+                <span class="detail-value">₹{{ $transport->total_cost ?? '0.00' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Status:</span>
-                <span class="detail-value" style="color: #4CAF50;">Confirmed</span>
+                <span class="detail-value" style="color: #4CAF50;">{{ ucfirst($transport->status ?? 'confirmed') }}</span>
             </div>
         </div>
 

@@ -617,6 +617,10 @@
     <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    @if (session('error'))
+    <div class="alert alert-error">{{ session('error') }}</div>
+    @endif
+
     @if ($errors->any())
     <div class="alert alert-error">
         <ul>
@@ -627,7 +631,7 @@
     </div>
     @endif
 
-    <form class="consignment-form" method="POST" action="{{ route('admin.booking-confirmed.index') }}">
+    <form class="consignment-form" method="POST" action="{{ route('admin.charges-advance.store') }}">
         @csrf
         
         <!-- Freight & Cost Breakdown Section -->
@@ -645,20 +649,20 @@
                     <div class="field-row">
                         <div class="form-group" style="flex: 1;">
                             <label style="font-size: 16px; font-weight: 500; color: #313131;">Freight Weight</label>
-                            <input type="text" name="freight_weight" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                            <input type="text" name="freight_weight" value="{{ old('freight_weight', isset($transport) ? $transport->freight_weight : '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                         </div>
                         <div class="form-group" style="flex: 1;">
                             <label style="font-size: 16px; font-weight: 500; color: #313131;">Unit</label>
                             <select name="weight_unit" style="width: 100%; height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C; appearance: none; background: white;">
-                                <option>Unit..</option>
-                                <option>Kg</option>
-                                <option>Tons</option>
+                                <option {{ (!old('weight_unit', isset($transport) ? $transport->weight_unit : '')) ? 'selected' : '' }}>Unit..</option>
+                                <option value="Kg" {{ (old('weight_unit', isset($transport) ? $transport->weight_unit : '') == 'Kg') ? 'selected' : '' }}>Kg</option>
+                                <option value="Tons" {{ (old('weight_unit', isset($transport) ? $transport->weight_unit : '') == 'Tons') ? 'selected' : '' }}>Tons</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Rate / Unit (QR)</label>
-                        <input type="text" name="rate_per_unit" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                        <input type="text" name="rate_per_unit" value="{{ old('rate_per_unit', isset($transport) ? $transport->rate_per_unit : '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                     </div>
                 </div>
             </div>
@@ -669,11 +673,11 @@
                 <div class="freight-fields">
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Total Packages</label>
-                        <input type="text" name="total_packages" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                        <input type="text" name="total_packages" value="{{ old('total_packages', isset($transport) ? $transport->total_packages : '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                     </div>
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Rate / Package (QR)</label>
-                        <input type="text" name="rate_per_package" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                        <input type="text" name="rate_per_package" value="{{ old('rate_per_package', isset($transport) ? $transport->rate_per_package : '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                     </div>
                 </div>
             </div>
@@ -684,7 +688,7 @@
                 <div class="freight-fields">
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Fixed Freight Cost (QR)</label>
-                        <input type="text" name="fixed_cost" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                        <input type="text" name="fixed_cost" value="{{ old('fixed_cost', isset($transport) ? $transport->fixed_cost : '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                     </div>
                 </div>
             </div>
@@ -734,21 +738,21 @@
                     <div class="summary-column">
                         <div class="summary-field">
                             <label>Consigner</label>
-                            <div class="value">Logistics 7</div>
+                            <div class="value">{{ $transport->consigner ?? 'N/A' }}</div>
                         </div>
                         <div class="summary-field">
                             <label>Route</label>
-                            <div class="value">Qatar → Dubai</div>
+                            <div class="value">{{ $transport->source_city ?? 'N/A' }} → {{ $transport->dest_city ?? 'N/A' }}</div>
                         </div>
                     </div>
                     <div class="summary-column">
                         <div class="summary-field">
                             <label>Scheduled Pickup Date & Time</label>
-                            <div class="value">6 Dec 2025, 04:30 AM</div>
+                            <div class="value">{{ $transport->pickup_datetime ? $transport->pickup_datetime->format('d M Y, h:i A') : 'N/A' }}</div>
                         </div>
                         <div class="summary-field">
                             <label>Expected Delivery Date (Calculated)</label>
-                            <div class="value">12 Dec 2025</div>
+                            <div class="value">{{ $transport->delivery_date ? $transport->delivery_date->format('d M Y') : 'N/A' }}</div>
                         </div>
                     </div>
                 </div>
@@ -764,29 +768,29 @@
                     <div class="summary-column">
                         <div class="summary-field">
                             <label>Total Distance (Kms)</label>
-                            <div class="value">1344 kms</div>
+                            <div class="value">N/A</div>
                         </div>
                         <div class="summary-field">
                             <label>Total Travel Time</label>
-                            <div class="value">72 hrs</div>
+                            <div class="value">N/A</div>
                         </div>
                         <div class="summary-field">
                             <label>Load / Weight</label>
-                            <div class="value">2 Tons</div>
+                            <div class="value">{{ $transport->weight ?? 'N/A' }} Tons</div>
                         </div>
                     </div>
                     <div class="summary-column">
                         <div class="summary-field">
                             <label>Assigned Driver</label>
-                            <div class="value">Rehman</div>
+                            <div class="value">{{ $transport->assigned_driver ?? 'N/A' }}</div>
                         </div>
                         <div class="summary-field">
                             <label>Vehicle Type</label>
-                            <div class="value">Toyota Hilux</div>
+                            <div class="value">{{ $transport->vehicle_type ?? 'N/A' }}</div>
                         </div>
                         <div class="summary-field">
                             <label>Vehicle No</label>
-                            <div class="value">QTR-HLX-1021</div>
+                            <div class="value">{{ $transport->assigned_vehicle_no ?? 'N/A' }}</div>
                         </div>
                     </div>
                 </div>
@@ -797,7 +801,7 @@
         <div class="final-section">
             <div class="form-group final-input">
                 <label style="font-size: 16px; font-weight: 500; color: #313131;">Final Checks & Notes</label>
-                <input type="text" name="final_notes" placeholder="Instructions / Remarks" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 400; color: #000;">
+                <input type="text" name="final_notes" value="{{ old('final_notes', isset($transport) ? $transport->final_notes : '') }}" placeholder="Instructions / Remarks" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 400; color: #000;">
             </div>
             <label class="confirm-btn">
                 <input type="checkbox" name="confirm_booking" required>

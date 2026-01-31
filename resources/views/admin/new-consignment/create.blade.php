@@ -427,7 +427,7 @@
     </div>
     @endif
 
-    <form class="consignment-form" method="POST" action="{{ route('admin.freight-assignment.store') }}">
+    <form class="consignment-form" method="POST" action="{{ route('admin.new-consignment.store') }}">
         @csrf
         <div class="form-grid">
             <div class="form-section source-section">
@@ -438,13 +438,13 @@
 
                 <div class="form-group">
                     <label>Consigner / Party <span class="required">*</span></label>
-                    <input type="text" name="consigner" value="{{ old('consigner') }}" placeholder="Enter Name..">
+                    <input type="text" name="consigner" value="{{ old('consigner', isset($transport) ? $transport->consigner : '') }}" placeholder="Enter Name..">
                 </div>
 
                 <div class="form-group">
                     <label>Warehouse / Pickup Location <span class="required">*</span></label>
                     <div class="select-wrapper">
-                        <input type="text" name="pickup_location" value="{{ old('pickup_location') }}" placeholder="Enter to Search on Map..">
+                        <input type="text" name="pickup_location" value="{{ old('pickup_location', isset($transport) ? $transport->pickup_location : '') }}" placeholder="Enter to Search on Map..">
                         <svg width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="#313131" stroke-width="1.5"/></svg>
                     </div>
                 </div>
@@ -452,22 +452,22 @@
                 <div class="form-row">
                     <div class="form-group half">
                         <label>Pincode <span class="required">*</span></label>
-                        <input type="text" name="source_pincode" value="{{ old('source_pincode') }}" placeholder="Code..">
+                        <input type="text" name="source_pincode" value="{{ old('source_pincode', isset($transport) ? $transport->source_pincode : '') }}" placeholder="Code..">
                     </div>
                     <div class="form-group half">
                         <label>City <span class="required">*</span></label>
-                        <input type="text" name="source_city" value="{{ old('source_city') }}" placeholder="Enter City..">
+                        <input type="text" name="source_city" value="{{ old('source_city', isset($transport) ? $transport->source_city : '') }}" placeholder="Enter City..">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group half">
                         <label>State <span class="required">*</span></label>
-                        <input type="text" name="source_state" value="{{ old('source_state') }}" placeholder="Enter State..">
+                        <input type="text" name="source_state" value="{{ old('source_state', isset($transport) ? $transport->source_state : '') }}" placeholder="Enter State..">
                     </div>
                     <div class="form-group half">
                         <label>Country <span class="required">*</span></label>
-                        <input type="text" name="source_country" value="{{ old('source_country') }}" placeholder="Enter Country..">
+                        <input type="text" name="source_country" value="{{ old('source_country', isset($transport) ? $transport->source_country : '') }}" placeholder="Enter Country..">
                     </div>
                 </div>
             </div>
@@ -480,33 +480,33 @@
 
                 <div class="form-group">
                     <label>Delivery Location <span class="required">*</span></label>
-                    <input type="text" name="delivery_location" value="{{ old('delivery_location') }}" placeholder="Enter Source Location (Type to Search on Map)">
+                    <input type="text" name="delivery_location" value="{{ old('delivery_location', isset($transport) ? $transport->delivery_location : '') }}" placeholder="Enter Source Location (Type to Search on Map)">
                 </div>
 
                 <div class="form-group">
                     <label>Address Line <span class="required">*</span></label>
-                    <input type="text" name="address_line" value="{{ old('address_line') }}" placeholder="Street / Building or Location">
+                    <input type="text" name="address_line" value="{{ old('address_line', isset($transport) ? $transport->address_line : '') }}" placeholder="Street / Building or Location">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group half">
                         <label>Building/House/Office No</label>
-                        <input type="text" name="building_no" value="{{ old('building_no') }}" placeholder="Number..">
+                        <input type="text" name="building_no" value="{{ old('building_no', isset($transport) ? $transport->building_no : '') }}" placeholder="Number..">
                     </div>
                     <div class="form-group half">
                         <label>Pincode <span class="required">*</span></label>
-                        <input type="text" name="dest_pincode" value="{{ old('dest_pincode') }}" placeholder="Code..">
+                        <input type="text" name="dest_pincode" value="{{ old('dest_pincode', isset($transport) ? $transport->dest_pincode : '') }}" placeholder="Code..">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group half">
                         <label>State <span class="required">*</span></label>
-                        <input type="text" name="dest_state" value="{{ old('dest_state') }}" placeholder="Enter State..">
+                        <input type="text" name="dest_state" value="{{ old('dest_state', isset($transport) ? $transport->dest_state : '') }}" placeholder="Enter State..">
                     </div>
                     <div class="form-group half">
                         <label>Country <span class="required">*</span></label>
-                        <input type="text" name="dest_country" value="{{ old('dest_country') }}" placeholder="Enter Country..">
+                        <input type="text" name="dest_country" value="{{ old('dest_country', isset($transport) ? $transport->dest_country : '') }}" placeholder="Enter Country..">
                     </div>
                 </div>
             </div>
@@ -520,7 +520,7 @@
                 <div class="form-group">
                     <label>Pickup Date & Time <span class="required">*</span></label>
                     <div class="date-input">
-                        <input type="datetime-local" name="pickup_datetime" value="{{ old('pickup_datetime') }}" placeholder="Date & Time">
+                        <input type="datetime-local" name="pickup_datetime" value="{{ old('pickup_datetime', isset($transport) && $transport->pickup_datetime ? $transport->pickup_datetime->format('Y-m-d\TH:i') : '') }}" placeholder="Date & Time">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4c4c4c" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     </div>
                 </div>
@@ -528,7 +528,7 @@
                 <div class="form-group">
                     <label>Tentative Delivery Date <span class="required">*</span></label>
                     <div class="date-input">
-                        <input type="date" name="delivery_date" value="{{ old('delivery_date') }}" placeholder="Date">
+                        <input type="date" name="delivery_date" value="{{ old('delivery_date', isset($transport) && $transport->delivery_date ? $transport->delivery_date->format('Y-m-d') : '') }}" placeholder="Date">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4c4c4c" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     </div>
                 </div>
@@ -542,18 +542,18 @@
 
                 <div class="form-group">
                     <label>Receiver Name <span class="required">*</span></label>
-                    <input type="text" name="receiver_name" value="{{ old('receiver_name') }}" placeholder="Enter Consignee / Receiver Name">
+                    <input type="text" name="receiver_name" value="{{ old('receiver_name', isset($transport) ? $transport->receiver_name : '') }}" placeholder="Enter Consignee / Receiver Name">
                 </div>
 
                 <div class="form-group">
                     <label>Receiver Mobile No <span class="required">*</span></label>
-                    <input type="tel" name="receiver_mobile" value="{{ old('receiver_mobile') }}" placeholder="Receiver Number">
+                    <input type="tel" name="receiver_mobile" value="{{ old('receiver_mobile', isset($transport) ? $transport->receiver_mobile : '') }}" placeholder="Receiver Number">
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <a href="{{ route('admin.new-consignment.index') }}" class="btn btn-secondary">Back</a>
+            <a href="{{ route('admin.consignment.index') }}" class="btn btn-secondary">Back</a>
             <button type="submit" class="btn btn-secondary">Next</button>
         </div>
     </form>

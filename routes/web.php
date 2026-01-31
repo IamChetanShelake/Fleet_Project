@@ -21,12 +21,25 @@ use App\Http\Controllers\UtilitiesToolsController;
 use App\Http\Controllers\HelpCenterController;
 use App\Http\Controllers\MyAssistanceController;
 use App\Http\Controllers\NewConsignmentController;
+use App\Http\Controllers\ConsignmentController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\FranchiseController;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/', [LoginController::class, 'login']);
+// Franchise Selection Routes (Before Login)
+Route::get('/', [FranchiseController::class, 'index'])->name('franchises.index');
+Route::get('/franchises/create', [FranchiseController::class, 'create'])->name('franchises.create');
+Route::post('/franchises', [FranchiseController::class, 'store'])->name('franchises.store');
+Route::get('/franchises/{id}', [FranchiseController::class, 'show'])->name('franchises.show');
+Route::get('/franchises/{id}/edit', [FranchiseController::class, 'edit'])->name('franchises.edit');
+Route::put('/franchises/{id}', [FranchiseController::class, 'update'])->name('franchises.update');
+Route::delete('/franchises/{id}', [FranchiseController::class, 'destroy'])->name('franchises.destroy');
+Route::get('/franchises/{id}/login', [FranchiseController::class, 'login'])->name('franchises.login');
+
+// Login Routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 // Admin Routes (Protected by Authentication)
 Route::prefix('admin')->middleware('auth')->group(function () {
@@ -268,16 +281,24 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'destroy' => 'admin.my-assistance.destroy'
     ]);
 
-    // New Consignment
+    // Consignment (Listing & CRUD)
+    Route::resource('consignment', ConsignmentController::class)->names([
+        'index' => 'admin.consignment.index',
+        'show' => 'admin.consignment.show',
+        'destroy' => 'admin.consignment.destroy'
+    ]);
+
+    // New Consignment (Multi-step Form for Creating New Entry)
     Route::resource('new-consignment', NewConsignmentController::class)->names([
         'index' => 'admin.new-consignment.index',
         'create' => 'admin.new-consignment.create',
         'store' => 'admin.new-consignment.store',
-        'show' => 'admin.new-consignment.show',
         'edit' => 'admin.new-consignment.edit',
-        'update' => 'admin.new-consignment.update',
-        'destroy' => 'admin.new-consignment.destroy'
+        'update' => 'admin.new-consignment.update'
     ]);
+
+    // Remove new-consignment show and destroy (handled by consignment controller)
+    Route::delete('new-consignment/{id}', [NewConsignmentController::class, 'destroy'])->name('admin.new-consignment.destroy');
 
     // Brands Management
     Route::resource('brands', BrandController::class)->names([

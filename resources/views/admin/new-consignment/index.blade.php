@@ -498,7 +498,7 @@
     .comparison-table th,
     .comparison-table td {
         padding: 20px 32px;
-        text-align: center;
+         text-align: center;
         border-bottom: 1px solid #e6e9f5;
         border-right: 1px solid #e6e9f5;
     }
@@ -594,7 +594,7 @@
 
 <div class="dashboard-wrapper">
     <!-- Top Navigation Bar -->
-    <div class="top-navbar">
+    <!-- <div class="top-navbar">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="search-input" placeholder="Search..">
@@ -616,7 +616,7 @@
                 <i class="fas fa-user"></i>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="consignment-container">
     
