@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QWIKHOM CMS - Website Content Management System</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -122,10 +123,25 @@
         }
 
         .sidebar-nav {
-            padding: 2rem 0 1rem 0;
+            padding: 2rem 1rem 1rem 1rem;
             height: calc(100vh - 140px);
             overflow-y: auto;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Navigation Highlight */
+        .nav-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
 
         /* Custom scrollbar styling for thicker scrollbar */
@@ -203,15 +219,17 @@
         .nav-link {
             color: rgba(255,255,255,0.8) !important;
             font-weight: 500;
-            padding: 1rem 1.5rem;
-            margin: 0 0.5rem;
-            border-radius: 12px;
-            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 0.5rem;
+            border-radius: 25px;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             align-items: center;
             text-decoration: none;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(10px);
+            z-index: 2;
         }
 
         .sidebar.collapsed .nav-link {
@@ -572,29 +590,30 @@
             .nav-link {
                 color: rgba(255, 255, 255, 0.8) !important;
                 font-weight: 500;
-                padding: 1rem 1.5rem;
-                margin: 0 0.5rem;
-                border-radius: 12px;
-                transition: all 0.3s ease;
+                padding: 0.75rem 1.5rem;
+                margin: 0.25rem 0.5rem;
+                border-radius: 25px;
+                transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
                 display: flex;
                 align-items: center;
                 text-decoration: none;
                 justify-content: flex-start !important;
                 width: calc(100% - 1rem) !important;
+                backdrop-filter: blur(10px);
+                position: relative;
+                overflow: hidden;
+                z-index: 2;
             }
 
             .nav-link:hover {
-                background-color: rgba(0, 66, 113, 0.15);
                 color: white !important;
-                transform: none !important;
-                box-shadow: none !important;
+                transform: scale(1.02) !important;
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
             }
 
             .nav-link.active {
-                background: linear-gradient(135deg, var(--primary-color) 0%, #002d52 100%);
                 color: white !important;
                 font-weight: 600;
-                box-shadow: 0 4px 20px rgba(0, 66, 113, 0.4);
             }
 
             .nav-link i {
@@ -708,8 +727,7 @@
             });
 
             // Close sidebar when clicking on a nav link (mobile)
-            const navLinks = document.querySelectorAll('.sidebar .nav-link');
-            navLinks.forEach(link => {
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
                 link.addEventListener('click', function() {
                     if (window.innerWidth <= 992) {
                         sidebar.classList.remove('active');
@@ -776,8 +794,54 @@
             // Add active class to the matching nav link
             document.querySelectorAll('.nav-link').forEach(function(link) {
                 const linkPath = link.getAttribute('href');
-                if (linkPath && currentPath.includes(linkPath.split('/').pop())) {
-                    link.classList.add('active');
+                if (linkPath) {
+                    // 1. CHECK NEW CONSIGNMENT FIRST (Most Specific)
+                    if (currentPath.includes('/admin/new-consignment')) {
+                        if (linkPath.includes('new-consignment')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+                    
+                    // 2. CHECK CUSTOMER CONSIGNMENT
+                    else if (currentPath.includes('/admin/customer-consignment')) {
+                        if (linkPath.includes('customer-consignment')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+                    
+                    // 3. CHECK TRIP STATUS
+                    else if (currentPath.includes('/admin/trip-status')) {
+                        if (linkPath.includes('trip-status')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+
+                    // 3. CHECK INVOICE
+                    else if (currentPath.includes('/admin/invoice')) {
+                        if (linkPath.includes('invoice')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+                    
+                    // 4. CHECK GENERAL CONSIGNMENT
+                    // This runs only if 'new-consignment' was NOT found
+                    else if (currentPath.includes('/admin/consignment')) {
+                        // Ensure we don't match 'new-consignment' or 'trip-status' here just in case
+                        if (linkPath.includes('consignment') && !linkPath.includes('new-consignment') && !linkPath.includes('trip-status')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+                    
+                    // 5. GENERAL ROUTE MATCHING (For other pages)
+                    else if (currentPath === linkPath || 
+                             (linkPath && currentPath.endsWith('/' + linkPath.split('/').pop()))) {
+                        link.classList.add('active');
+                    }
                 }
             });
         });
@@ -789,11 +853,12 @@
         <div class="sidebar collapsed" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="{{ asset('images/image 2 1.png') }}" alt="QWIKHOM Logo">
+                <img src="{{ asset('images/thelogo.png') }}" alt="Peak Logistics Logo">
                 <div class="logo-text">Peak Logistics</div>
             </div>
         </div>
         <nav class="sidebar-nav">
+            <div class="nav-highlight"></div>
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link active" href="{{ route('admin.dashboard') }}">
@@ -801,6 +866,49 @@
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
+
+                 <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span class="nav-text">New Consignment</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.trip-status.index') }}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="nav-text">Trip Status</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.invoice.index') }}">
+                            <i class="fas fa-file-invoice"></i>
+                            <span class="nav-text">Invoice</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.consignment.index') }}">
+                            <i class="fas fa-truck"></i>
+                            <span class="nav-text">Consignment</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.customer.index') }}">
+                            <i class="fas fa-users"></i>
+                            <span class="nav-text">Customers</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.customer-consignment') }}">
+                            <i class="fas fa-box"></i>
+                            <span class="nav-text">Customer Consignment</span>
+                        </a>
+                    </li>
+                
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.team-members.index') }}">
                         <i class="fas fa-users"></i>
@@ -813,102 +921,98 @@
                         <span class="nav-text">Driving Team</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.billing-entities.index') }}">
                         <i class="fas fa-file-invoice-dollar"></i>
                         <span class="nav-text">Billing Entities</span>
                     </a>
-                </li>
+                </li> -->
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.vehicle-monitoring.index') }}">
                         <i class="fas fa-truck"></i>
-                        <span class="nav-text">Vehicle Monitoring</span>
+                        <span class="nav-text">Fleet Management</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.peak-accounts.index') }}">
                         <i class="fas fa-user-shield"></i>
                         <span class="nav-text">Peak Accounts</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.tyre-maintenance.index') }}">
                         <i class="fas fa-circle-notch"></i>
                         <span class="nav-text">Tyre Maintenance</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.tyre-stock.index') }}">
                         <i class="fas fa-warehouse"></i>
                         <span class="nav-text">Tyre Stock</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.fleet-management.index') }}">
                         <i class="fas fa-bus"></i>
                         <span class="nav-text">Fleet Management</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.transport-management.index') }}">
                         <i class="fas fa-shipping-fast"></i>
                         <span class="nav-text">Transport Management</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.vehicle-maintenance.index') }}">
                         <i class="fas fa-tools"></i>
                         <span class="nav-text">Vehicle Maintenance</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.expense-tracking.index') }}">
                         <i class="fas fa-calculator"></i>
                         <span class="nav-text">Expense Tracking</span>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.attendance-records.index') }}">
-                        <i class="fas fa-calendar-check"></i>
-                        <span class="nav-text">Attendance Records</span>
-                    </a>
-                </li>
+                </li> -->
+               
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.geography.index') }}">
                         <i class="fas fa-map-marked-alt"></i>
                         <span class="nav-text">Geography</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.performance-reports.index') }}">
                         <i class="fas fa-chart-bar"></i>
                         <span class="nav-text">Performance Reports</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.admin-panel.index') }}">
                         <i class="fas fa-cog"></i>
                         <span class="nav-text">Admin Panel</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.utilities-tools.index') }}">
                         <i class="fas fa-wrench"></i>
                         <span class="nav-text">Utilities & Tools</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.help-center.index') }}">
                         <i class="fas fa-question-circle"></i>
                         <span class="nav-text">Help Center</span>
                     </a>
-                </li>
-                <li class="nav-item">
+                </li> -->
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.my-assistance.index') }}">
                         <i class="fas fa-headset"></i>
                         <span class="nav-text">My Assistance</span>
                     </a>
-                </li>
+                </li> -->
+               
                 <li class="nav-item" style="padding-bottom: 70px;">
                     <a class="nav-link" href="{{ route('logout') }}"
                        onclick="event.preventDefault();

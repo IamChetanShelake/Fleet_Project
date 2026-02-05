@@ -22,7 +22,13 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
+        // Seed roles first
+        $this->call(RoleSeeder::class);
+
         // Seed contact submissions
         $this->call(ContactSubmissionSeeder::class);
+
+        // Seed drivers
+        $this->call(DriverSeeder::class);
     }
 }
