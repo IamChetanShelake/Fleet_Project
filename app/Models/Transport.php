@@ -7,18 +7,25 @@ use Illuminate\Database\Eloquent\Model;
 class Transport extends Model
 {
     protected $fillable = [
+        'order_no',
+        'customer_id',
+        'consignment_type',
         'consigner',
         'pickup_location',
         'source_pincode',
         'source_city',
         'source_state',
         'source_country',
+        'source_building_no',
+        'source_maps_link',
         'delivery_location',
         'address_line',
         'building_no',
         'dest_pincode',
         'dest_state',
         'dest_country',
+        'dest_building_no',
+        'dest_maps_link',
         'pickup_datetime',
         'delivery_date',
         'receiver_name',
@@ -48,6 +55,8 @@ class Transport extends Model
         'final_notes',
         'status',
         'total_cost',
+        'total_distance',
+        'total_travel_time',
     ];
 
     protected $casts = [
@@ -57,4 +66,52 @@ class Transport extends Model
         'expense_amounts' => 'array',
         'expense_remarks' => 'array',
     ];
+
+    /**
+     * Get the customer that owns this transport.
+     */
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($transport) {
+            // Auto-generate order number if not set
+            if (empty($transport->order_no)) {
+                $transport->order_no = self::generateOrderNo();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique order number.
+     * Format: XX001 (2 letters + 3 digit sequential number)
+     */
+    public static function generateOrderNo()
+    {
+        // Get the last order number
+        $lastTransport = self::orderBy('id', 'desc')->first();
+        
+        $lastNumber = 0;
+        if ($lastTransport && !empty($lastTransport->order_no)) {
+            // Extract the numeric part from the last order number
+            $numericPart = substr($lastTransport->order_no, 2);
+            $lastNumber = (int) $numericPart;
+        }
+        
+        // Increment and pad with zeros
+        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        
+        // Generate with current year prefix (e.g., "TR" for 2026)
+        $prefix = 'TR';
+        
+        return $prefix . $newNumber;
+    }
 }

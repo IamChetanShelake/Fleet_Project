@@ -795,27 +795,51 @@
             document.querySelectorAll('.nav-link').forEach(function(link) {
                 const linkPath = link.getAttribute('href');
                 if (linkPath) {
-                    // Check for exact route match or proper segment match
-                    const routeName = linkPath.split('/').pop();
-                    
-                    // Special handling for new-consignment routes
-                    if (currentPath.includes('new-consignment') && 
-                        (routeName === 'index' || routeName === 'create')) {
+                    // 1. CHECK NEW CONSIGNMENT FIRST (Most Specific)
+                    if (currentPath.includes('/admin/new-consignment')) {
                         if (linkPath.includes('new-consignment')) {
                             link.classList.add('active');
+                            return;
                         }
                     }
-                    // Special handling for consignment routes
-                    else if (currentPath.includes('/admin/consignment') && 
-                             (routeName === 'index' || routeName === 'show')) {
-                        if (linkPath.includes('/admin/consignment')) {
+                    
+                    // 2. CHECK CUSTOMER CONSIGNMENT
+                    else if (currentPath.includes('/admin/customer-consignment')) {
+                        if (linkPath.includes('customer-consignment')) {
                             link.classList.add('active');
+                            return;
                         }
                     }
-                    // General route matching
+                    
+                    // 3. CHECK TRIP STATUS
+                    else if (currentPath.includes('/admin/trip-status')) {
+                        if (linkPath.includes('trip-status')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+
+                    // 3. CHECK INVOICE
+                    else if (currentPath.includes('/admin/invoice')) {
+                        if (linkPath.includes('invoice')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+                    
+                    // 4. CHECK GENERAL CONSIGNMENT
+                    // This runs only if 'new-consignment' was NOT found
+                    else if (currentPath.includes('/admin/consignment')) {
+                        // Ensure we don't match 'new-consignment' or 'trip-status' here just in case
+                        if (linkPath.includes('consignment') && !linkPath.includes('new-consignment') && !linkPath.includes('trip-status')) {
+                            link.classList.add('active');
+                            return;
+                        }
+                    }
+                    
+                    // 5. GENERAL ROUTE MATCHING (For other pages)
                     else if (currentPath === linkPath || 
-                             currentPath.includes(linkPath + '/') ||
-                             (routeName && currentPath.endsWith('/' + routeName))) {
+                             (linkPath && currentPath.endsWith('/' + linkPath.split('/').pop()))) {
                         link.classList.add('active');
                     }
                 }
@@ -829,7 +853,7 @@
         <div class="sidebar collapsed" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="{{ asset('images/image 2 1.png') }}" alt="QWIKHOM Logo">
+                <img src="{{ asset('images/thelogo.png') }}" alt="Peak Logistics Logo">
                 <div class="logo-text">Peak Logistics</div>
             </div>
         </div>
@@ -844,18 +868,46 @@
                 </li>
 
                  <li class="nav-item">
-                       <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
-                           <i class="fas fa-plus-circle"></i>
-                           <span class="nav-text">New Consignment</span>
-                       </a>
-                   </li>
+                        <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span class="nav-text">New Consignment</span>
+                        </a>
+                    </li>
 
-                  <li class="nav-item">
-                      <a class="nav-link" href="{{ route('admin.consignment.index') }}">
-                          <i class="fas fa-truck"></i>
-                          <span class="nav-text">Consignment</span>
-                      </a>
-                  </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.trip-status.index') }}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="nav-text">Trip Status</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.invoice.index') }}">
+                            <i class="fas fa-file-invoice"></i>
+                            <span class="nav-text">Invoice</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.consignment.index') }}">
+                            <i class="fas fa-truck"></i>
+                            <span class="nav-text">Consignment</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.customer.index') }}">
+                            <i class="fas fa-users"></i>
+                            <span class="nav-text">Customers</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.customer-consignment') }}">
+                            <i class="fas fa-box"></i>
+                            <span class="nav-text">Customer Consignment</span>
+                        </a>
+                    </li>
                 
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.team-members.index') }}">
@@ -923,7 +975,7 @@
                         <span class="nav-text">Expense Tracking</span>
                     </a>
                 </li> -->
-              
+               
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.geography.index') }}">
                         <i class="fas fa-map-marked-alt"></i>

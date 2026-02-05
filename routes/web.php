@@ -25,6 +25,11 @@ use App\Http\Controllers\ConsignmentController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\FranchiseController;
+use App\Http\Controllers\TripStatusController;
+use App\Http\Controllers\PodController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerConsignmentController;
+use App\Http\Controllers\InvoiceController;
 use Illuminate\Support\Facades\Auth;
 
 // Franchise Selection Routes (Before Login)
@@ -288,6 +293,28 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'destroy' => 'admin.consignment.destroy'
     ]);
 
+    // Consignment Invoice PDF
+    Route::get('consignment/{id}/invoice/pdf', [ConsignmentController::class, 'generateInvoicePDF'])->name('admin.consignment.invoice.pdf');
+
+    // Trip Status Management
+    Route::get('trip-status', [TripStatusController::class, 'index'])->name('admin.trip-status.index');
+    Route::get('trip-status/{id}/view', [TripStatusController::class, 'view'])->name('admin.trip-status.view');
+    Route::get('trip-status/{id}/edit', [TripStatusController::class, 'edit'])->name('admin.trip-status.edit');
+    Route::put('trip-status/{id}', [TripStatusController::class, 'update'])->name('admin.trip-status.update');
+    Route::put('trip-status/{id}/update-status', [TripStatusController::class, 'updateStatus'])->name('admin.trip-status.update-status');
+
+    // POD (Proof of Delivery) Management
+    Route::get('pod/{transportId}', [PodController::class, 'index'])->name('admin.pod.index');
+    Route::post('pod/{transportId}', [PodController::class, 'store'])->name('admin.pod.store');
+    Route::delete('pod/{id}', [PodController::class, 'destroy'])->name('admin.pod.destroy');
+    Route::get('pod/{id}/download', [PodController::class, 'download'])->name('admin.pod.download');
+    Route::get('pod/{id}/view', [PodController::class, 'view'])->name('admin.pod.view');
+
+    // Invoice Management
+    Route::get('invoice', [InvoiceController::class, 'index'])->name('admin.invoice.index');
+    Route::get('invoice/{id}/view', [InvoiceController::class, 'view'])->name('admin.invoice.view');
+    Route::get('invoice/{id}/download', [InvoiceController::class, 'download'])->name('admin.invoice.download');
+
     // New Consignment (Multi-step Form for Creating New Entry)
     Route::resource('new-consignment', NewConsignmentController::class)->names([
         'index' => 'admin.new-consignment.index',
@@ -325,13 +352,58 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     // Freight & Assignment
     Route::get('freight-assignment', [NewConsignmentController::class, 'freightAssignment'])->name('admin.freight-assignment.index');
     Route::post('freight-assignment', [NewConsignmentController::class, 'storeFreightAssignment'])->name('admin.freight-assignment.store');
+    Route::get('freight-assignment/{id}/edit', [NewConsignmentController::class, 'editFreightAssignment'])->name('admin.freight-assignment.edit');
+    Route::put('freight-assignment/{id}', [NewConsignmentController::class, 'updateFreightAssignment'])->name('admin.freight-assignment.update');
 
     // Charges & Advance
     Route::get('charges-advance', [NewConsignmentController::class, 'chargesAdvance'])->name('admin.charges-advance.index');
     Route::post('charges-advance', [NewConsignmentController::class, 'storeChargesAdvance'])->name('admin.charges-advance.store');
+    Route::get('charges-advance/{id}/edit', [NewConsignmentController::class, 'editChargesAdvance'])->name('admin.charges-advance.edit');
+    Route::put('charges-advance/{id}', [NewConsignmentController::class, 'updateChargesAdvance'])->name('admin.charges-advance.update');
 
     // Booking Confirmed
     Route::get('booking-confirmed', [NewConsignmentController::class, 'bookingConfirmed'])->name('admin.booking-confirmed.index');
+
+    // Customer Management
+    Route::resource('customer', CustomerController::class)->names([
+        'index' => 'admin.customer.index',
+        'create' => 'admin.customer.create',
+        'store' => 'admin.customer.store',
+        'show' => 'admin.customer.show',
+        'edit' => 'admin.customer.edit',
+        'update' => 'admin.customer.update',
+        'destroy' => 'admin.customer.destroy'
+    ]);
+
+    // Customer Consignment Management
+    Route::get('customer-consignment', [CustomerConsignmentController::class, 'listing'])->name('admin.customer-consignment');
+    Route::get('customer-consignment/index', [CustomerConsignmentController::class, 'index'])->name('admin.customer-consignment.index');
+    Route::get('customer-consignment/listing', [CustomerConsignmentController::class, 'listing'])->name('admin.customer-consignment.listing');
+    Route::get('customer-consignment/create', [CustomerConsignmentController::class, 'create'])->name('admin.customer-consignment.create');
+    Route::post('customer-consignment', [CustomerConsignmentController::class, 'store'])->name('admin.customer-consignment.store');
+    Route::get('customer-consignment/{id}', [CustomerConsignmentController::class, 'show'])->name('admin.customer-consignment.show');
+    Route::get('customer-consignment/{id}/edit', [CustomerConsignmentController::class, 'edit'])->name('admin.customer-consignment.edit');
+    Route::put('customer-consignment/{id}', [CustomerConsignmentController::class, 'update'])->name('admin.customer-consignment.update');
+    Route::delete('customer-consignment/{id}', [CustomerConsignmentController::class, 'destroy'])->name('admin.customer-consignment.destroy');
+
+    // Customer Consignment Freight Assignment
+    Route::get('customer-consignment/freight-assignment/{id}', [CustomerConsignmentController::class, 'freightAssignment'])->name('admin.customer-consignment.freight-assignment');
+    Route::post('customer-consignment/freight-assignment/{id}', [CustomerConsignmentController::class, 'storeFreightAssignment'])->name('admin.customer-consignment.freight-assignment.store');
+    Route::get('customer-consignment/freight-assignment/{id}/edit', [CustomerConsignmentController::class, 'editFreightAssignment'])->name('admin.customer-consignment.edit-freight');
+    Route::put('customer-consignment/freight-assignment/{id}', [CustomerConsignmentController::class, 'updateFreightAssignment'])->name('admin.customer-consignment.freight-assignment.update');
+
+    // Customer Consignment Charges & Advance
+    Route::get('customer-consignment/charges-advance/{id}', [CustomerConsignmentController::class, 'chargesAdvance'])->name('admin.customer-consignment.charges-advance');
+    Route::post('customer-consignment/charges-advance/{id}', [CustomerConsignmentController::class, 'storeChargesAdvance'])->name('admin.customer-consignment.charges-advance.store');
+    Route::get('customer-consignment/charges-advance/{id}/edit', [CustomerConsignmentController::class, 'editChargesAdvance'])->name('admin.customer-consignment.charges-advance.edit');
+    Route::put('customer-consignment/charges-advance/{id}', [CustomerConsignmentController::class, 'updateChargesAdvance'])->name('admin.customer-consignment.charges-advance.update');
+
+    // Customer Consignment Booking Confirm
+    Route::get('customer-consignment/booking-confirm/{id}', [CustomerConsignmentController::class, 'bookingConfirm'])->name('admin.customer-consignment.booking-confirm');
+
+    // Customer Consignment Vehicle Assignment (Admin only)
+    Route::get('customer-consignment/{id}/assign-vehicle', [CustomerConsignmentController::class, 'assignVehicle'])->name('admin.customer-consignment.assign-vehicle');
+    Route::post('customer-consignment/{id}/assign-vehicle', [CustomerConsignmentController::class, 'storeVehicleAssignment'])->name('admin.customer-consignment.store-vehicle');
 
     // Logout
     Route::post('/logout', function () {

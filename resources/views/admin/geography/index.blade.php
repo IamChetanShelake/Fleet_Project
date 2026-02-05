@@ -431,33 +431,7 @@
 
 <div class="dashboard-wrapper">
 <div class="geography-container-wrapper">
-    <!-- Top Navigation Bar -->
-    <div class="top-navbar">
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="Search..">
-        </div>
-
-        <select class="task-dropdown">
-            <option>Task</option>
-            <option>All Tasks</option>
-            <option>Pending Tasks</option>
-            <option>Completed Tasks</option>
-        </select>
-
-        <div class="nav-actions">
-            <button class="btn-main-account">Go To Main Account</button>
-            <button class="icon-btn">
-                <i class="fas fa-cog"></i>
-            </button>
-            <button class="icon-btn">
-                <i class="fas fa-power-off"></i>
-            </button>
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
-    </div>
+   
 
     <!-- Geography Container -->
     <div class="geography-container">

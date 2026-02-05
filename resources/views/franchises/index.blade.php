@@ -269,7 +269,8 @@
                             <a href="{{ route('franchises.show', $franchise->id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="fas fa-eye"></i> View
                             </a>
-                            <a href="{{ route('franchises.edit', $franchise->id) }}" class="btn btn-outline-secondary btn-sm">
+                            {{-- Edit and Delete buttons disabled - only View button available --}}
+                            {{-- <a href="{{ route('franchises.edit', $franchise->id) }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             <form action="{{ route('franchises.destroy', $franchise->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this franchise?')">
@@ -278,7 +279,7 @@
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
-                            </form>
+                            </form> --}}
                             <a href="{{ route('franchises.login', $franchise->id) }}" class="btn btn-login">
                                 <i class="fas fa-sign-in-alt me-2"></i> Go to Login
                             </a>

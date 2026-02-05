@@ -391,7 +391,7 @@
 <div class="dashboard-wrapper">
     <div class="vehicle-container-wrapper">
         <!-- Top Navigation Bar -->
-        <div class="top-navbar">
+        <!-- <div class="top-navbar">
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" placeholder="Search..">
@@ -416,7 +416,7 @@
                     <i class="fas fa-user"></i>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Vehicle Details Container -->
         <div class="vehicle-details-container">

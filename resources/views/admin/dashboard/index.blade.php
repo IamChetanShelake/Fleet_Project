@@ -1,15 +1,8 @@
 @extends('admin.layout.master')
 
 @section('content')
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-     crossorigin=""/>
-
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+<!-- Google Maps API -->
+<script defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&loading=async&libraries=places"></script>
 
 <style>
     /* Dashboard Specific Styles */
@@ -584,30 +577,10 @@
         z-index: 2;
     }
 
-    /* Leaflet map controls */
-    .leaflet-control-container {
-        z-index: 3 !important;
-    }
-
-    .leaflet-top,
-    .leaflet-bottom {
-        z-index: 3 !important;
-    }
-
-    .leaflet-control-zoom {
-        z-index: 3 !important;
-    }
-
-    .leaflet-control-fullscreen {
-        z-index: 3 !important;
-    }
-
-    .leaflet-control-layers {
-        z-index: 3 !important;
-    }
-
-    .leaflet-control-scale {
-        z-index: 3 !important;
+    .dashboard-map {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
     }
 
     .map-legend {
@@ -624,34 +597,11 @@
         gap: 0.5rem;
     }
 
-    /* Vehicle markers */
-    .vehicle-marker {
-        position: absolute;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 0.8rem;
-        cursor: pointer;
-        z-index: 4 !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    /* Leaflet popup */
-    .leaflet-popup {
-        z-index: 1001 !important;
-    }
-
-    .leaflet-popup-content-wrapper {
-        border-radius: 8px !important;
-    }
-
-    .leaflet-popup-tip {
-        background: white !important;
+    .legend-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: #333;
     }
 
     .legend-item {
@@ -665,6 +615,45 @@
         width: 16px;
         height: 16px;
         border-radius: 3px;
+    }
+
+    .legend-marker {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: white;
+    }
+
+    .map-controls {
+        position: absolute;
+        top: 4rem;
+        right: 1rem;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .map-type-btn {
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .map-type-btn:hover,
+    .map-type-btn.active {
+        background: #317ff1;
+        color: white;
+        border-color: #317ff1;
     }
 
     /* Vehicle Status Cards - Pill Shape Format */
@@ -944,25 +933,38 @@
     <!-- Map Section -->
     <div class="map-section">
         <div class="map-container">
-            <div id="map" style="width: 100%; height: 100%;"></div>
+            <div id="dashboard-map" class="dashboard-map"></div>
+            
+            <!-- Map Type Controls -->
+            <div class="map-controls">
+                <button class="map-type-btn active" data-map-type="roadmap" onclick="changeDashboardMapType('roadmap')">Roadmap</button>
+                <button class="map-type-btn" data-map-type="satellite" onclick="changeDashboardMapType('satellite')">Satellite</button>
+                <button class="map-type-btn" data-map-type="terrain" onclick="changeDashboardMapType('terrain')">Terrain</button>
+                <button class="map-type-btn" data-map-type="hybrid" onclick="changeDashboardMapType('hybrid')">Hybrid</button>
+            </div>
 
             <!-- Map legend -->
             <div class="map-legend">
+                <div class="legend-title">Map Legend</div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #2196F3;"></div>
+                    <div class="legend-marker" style="background: #4CAF50;"><i class="fas fa-truck" style="font-size: 10px;"></i></div>
                     <span>Running Vehicle</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #FF9800;"></div>
-                    <span>Alert Vehicle</span>
+                    <div class="legend-marker" style="background: #2196F3;"><i class="fas fa-map-marker-alt" style="font-size: 10px;"></i></div>
+                    <span>Trip Start</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #4CAF50;"></div>
-                    <span>Highway</span>
+                    <div class="legend-marker" style="background: #FF5722;"><i class="fas fa-map-marker-alt" style="font-size: 10px;"></i></div>
+                    <span>Trip End</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #2196F3; border-radius: 50%;"></div>
-                    <span>Toll Plaza</span>
+                    <div class="legend-marker" style="background: #9C27B0;"><i class="fas fa-city" style="font-size: 10px;"></i></div>
+                    <span>City</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #607D8B;"><i class="fas fa-industry" style="font-size: 10px;"></i></div>
+                    <span>Industrial Area</span>
                 </div>
             </div>
         </div>
@@ -1041,363 +1043,424 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 <script>
-    // Sidebar toggle functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
+    // Dashboard Map Variables
+    let dashboardMap = null;
+    let dashboardMarkers = [];
+    let dashboardPolylines = [];
+    let dashboardInfoWindow = null;
+    let tripDirectionsService = null;
+    let tripDirectionsRenderer = null;
+
+    // PHP data for ongoing transports
+    const ongoingTransports = @json($ongoingTransports ?? []);
+    console.log('Ongoing transports data:', ongoingTransports);
+
+    // Initialize Dashboard Map
+    function initDashboardMap() {
+        // Check if Google Maps is loaded
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            console.log('Google Maps not loaded yet, will retry...');
+            setTimeout(initDashboardMap, 500);
+            return;
+        }
         
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('expanded');
-                sidebar.classList.toggle('collapsed');
-                
-                const icon = this.querySelector('i');
-                const text = this.querySelector('.toggle-text');
-                
-                if (sidebar.classList.contains('expanded')) {
-                    icon.classList.remove('fa-chevron-right');
-                    icon.classList.add('fa-chevron-left');
-                    text.textContent = 'Collapse';
-                } else {
-                    icon.classList.remove('fa-chevron-left');
-                    icon.classList.add('fa-chevron-right');
-                    text.textContent = 'Expand';
-                }
-            });
+        if (dashboardMap) {
+            return; // Map already initialized
         }
+        
+        const mapOptions = {
+            zoom: 5,
+            center: { lat: 24.0, lng: 47.0 }, // Centered on Saudi Arabia/Gulf region
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            fullscreenControl: true,
+            mapTypeControl: false,
+            streetViewControl: false,
+            zoomControl: true
+        };
+        
+        dashboardMap = new google.maps.Map(document.getElementById('dashboard-map'), mapOptions);
+        dashboardInfoWindow = new google.maps.InfoWindow();
+        tripDirectionsService = new google.maps.DirectionsService();
+        tripDirectionsRenderer = new google.maps.DirectionsRenderer({
+            map: dashboardMap,
+            suppressMarkers: true,
+            polylineOptions: {
+                strokeColor: '#317ff1',
+                strokeWeight: 4,
+                strokeOpacity: 0.8
+            }
+        });
+        
+        // Add trip routes from ongoing transports
+        addTripRoutes();
+        
+        // Add points of interest (cities, industrial areas)
+        addPointsOfInterest();
+        
+        // Fit map to show all markers
+        setTimeout(fitMapToMarkers, 2000);
+        
+        console.log('Dashboard map initialized successfully');
+    }
 
-        // Daily Financials Chart
-        const ctx = document.getElementById('financialsChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['2017', '2018', '2019', '2020'],
-                    datasets: [{
-                        label: 'Income',
-                        data: [46000, 37000, 38000, 50000],
-                        backgroundColor: '#4A90E2',
-                        borderRadius: 8,
-                        barThickness: 40
-                    }, {
-                        label: 'Expense',
-                        data: [22000, 22000, 24000, 18000],
-                        backgroundColor: '#f5576c',
-                        borderRadius: 8,
-                        barThickness: 40
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Income & Expense comparison over years',
-                            font: {
-                                size: 12,
-                                weight: 'normal'
-                            },
-                            color: '#666',
-                            padding: {
-                                bottom: 20
-                            }
-                        }
+    // Add trip routes for ongoing transports
+    function addTripRoutes() {
+        if (!ongoingTransports || ongoingTransports.length === 0) {
+            console.log('No ongoing transports to display');
+            // Add fallback vehicle markers when no transports
+            addVehicleMarkers();
+            return;
+        }
+        
+        console.log('Adding ' + ongoingTransports.length + ' ongoing trips to map');
+        
+        ongoingTransports.forEach((transport, index) => {
+            const pickupLocation = transport.pickup_location || transport.source_city;
+            const deliveryLocation = transport.delivery_location || transport.dest_city;
+            
+            if (!pickupLocation || !deliveryLocation) {
+                console.log('Skipping transport ' + transport.id + ': missing locations');
+                return;
+            }
+            
+            // Create unique color for each route
+            const colors = ['#317ff1', '#33C17F', '#ED5A68', '#FF9800', '#9C27B0', '#00BCD4', '#795548'];
+            const routeColor = colors[index % colors.length];
+            
+            // Add pickup marker
+            addTripMarker(pickupLocation, 'start', transport, routeColor);
+            
+            // Add delivery marker
+            addTripMarker(deliveryLocation, 'end', transport, routeColor);
+            
+            // Draw route between pickup and delivery
+            drawTripRoute(pickupLocation, deliveryLocation, transport, routeColor);
+        });
+    }
+
+    // Add a trip marker (start or end)
+    function addTripMarker(location, type, transport, color) {
+        const geocoder = new google.maps.Geocoder();
+        
+        geocoder.geocode({ address: location }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                const position = results[0].geometry.location;
+                const iconSymbol = type === 'start' ? '📦' : '📍';
+                const iconColor = type === 'start' ? '#2196F3' : '#FF5722';
+                const deliveryDate = transport.delivery_date ? 
+                    new Date(transport.delivery_date).toLocaleDateString('en-GB', { 
+                        day: '2-digit', month: 'short', year: 'numeric' 
+                    }) : 'TBD';
+                
+                const marker = new google.maps.Marker({
+                    position: position,
+                    map: dashboardMap,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">' +
+                            '<circle cx="18" cy="18" r="16" fill="' + iconColor + '" stroke="white" stroke-width="2"/>' +
+                            '<text x="18" y="23" text-anchor="middle" fill="white" font-size="14" font-weight="bold">' + iconSymbol + '</text>' +
+                            '</svg>'
+                        ),
+                        scaledSize: new google.maps.Size(36, 36),
+                        anchorPoint: new google.maps.Point(18, 18)
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '₹' + (value/1000) + 'K';
-                                }
-                            },
-                            grid: {
-                                display: true,
-                                drawBorder: false
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Initialize Leaflet Map
-        const map = L.map('map').setView([23.0, 78.0], 5); // Centered on India with appropriate zoom level
-
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Add scale control
-        L.control.scale().addTo(map);
-
-        // Add fullscreen control
-        L.control.fullscreen().addTo(map);
-
-        // Create custom icons
-        const runningIcon = L.divIcon({
-            html: '<div style="background: #4CAF50; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;"><i class="fas fa-truck" style="color: white; font-size: 12px;"></i></div>',
-            className: 'vehicle-marker-icon',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
-        });
-
-        const alertIcon = L.divIcon({
-            html: '<div style="background: #FF9800; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;"><i class="fas fa-exclamation-triangle" style="color: white; font-size: 12px;"></i></div>',
-            className: 'vehicle-marker-icon',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
-        });
-
-        const tollIcon = L.divIcon({
-            html: '<div style="background: #2196F3; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white;"></div>',
-            className: 'toll-marker-icon',
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
-        });
-
-        const highwayIcon = L.divIcon({
-            html: '<div style="width: 20px; height: 4px; background: #4CAF50; border-radius: 2px;"></div>',
-            className: 'highway-marker-icon',
-            iconSize: [20, 4],
-            iconAnchor: [10, 2]
-        });
-
-        // Sample vehicle locations
-        const vehicles = [
-            { lat: 28.6139, lng: 77.2090, status: 'running', name: 'Truck DEL-001' }, // Delhi
-            { lat: 19.0760, lng: 72.8777, status: 'running', name: 'Truck MUM-002' }, // Mumbai
-            { lat: 13.0827, lng: 80.2707, status: 'alert', name: 'Truck CHE-003' }, // Chennai
-            { lat: 22.5726, lng: 88.3639, status: 'running', name: 'Truck KOL-004' }, // Kolkata
-            { lat: 12.9716, lng: 77.5946, status: 'running', name: 'Truck BAN-005' }, // Bangalore
-            { lat: 23.0225, lng: 72.5714, status: 'running', name: 'Truck AHM-006' }, // Ahmedabad
-            { lat: 21.1702, lng: 72.8311, status: 'alert', name: 'Truck SUR-007' } // Surat
-        ];
-
-        // Add vehicle markers
-        vehicles.forEach(vehicle => {
-            const icon = vehicle.status === 'alert' ? alertIcon : runningIcon;
-            const marker = L.marker([vehicle.lat, vehicle.lng], { icon: icon }).addTo(map);
-
-            marker.bindPopup(`
-                <div style="font-family: Arial, sans-serif; max-width: 200px;">
-                    <h4 style="margin: 0 0 8px 0; color: #004271;">${vehicle.name}</h4>
-                    <p style="margin: 4px 0;"><strong>Status:</strong> ${vehicle.status === 'alert' ? 'Alert' : 'Running'}</p>
-                    <p style="margin: 4px 0;"><strong>Location:</strong> ${vehicle.lat.toFixed(4)}, ${vehicle.lng.toFixed(4)}</p>
-                    <p style="margin: 4px 0;"><strong>Last Update:</strong> ${new Date().toLocaleString()}</p>
-                </div>
-            `);
-        });
-
-        // Add highway markers (green lines) - these represent major highways
-        const highways = [
-            // North-South Corridor
-            [[28.6139, 77.2090], [26.8467, 80.9462], [25.4358, 81.8463], [23.0225, 72.5714]], // Delhi to Ahmedabad
-            [[26.8467, 80.9462], [25.3176, 82.9739], [24.8399, 85.3400], [23.2599, 77.4126]], // Lucknow to Bhopal
-            [[23.0225, 72.5714], [19.0760, 72.8777]], // Ahmedabad to Mumbai
-            [[19.0760, 72.8777], [18.5204, 73.8567], [12.9716, 77.5946]], // Mumbai to Bangalore
-
-            // East-West Corridor
-            [[22.5726, 88.3639], [23.3441, 85.3096], [25.5941, 85.1376], [26.8467, 80.9462]], // Kolkata to Lucknow
-            [[23.0225, 72.5714], [23.2599, 77.4126], [22.7196, 75.8577], [21.1702, 72.8311]], // Ahmedabad to Surat
-            [[12.9716, 77.5946], [13.0827, 80.2707]] // Bangalore to Chennai
-        ];
-
-        highways.forEach(highway => {
-            L.polyline(highway, {
-                color: '#4CAF50',
-                weight: 4,
-                opacity: 0.8
-            }).addTo(map);
-        });
-
-        // Add toll plaza markers (blue circles)
-        const tollPlazas = [
-            // North India
-            { lat: 28.4267, lng: 77.0856, name: 'Delhi Toll Plaza' }, // Near Delhi
-            { lat: 26.8765, lng: 80.9123, name: 'Lucknow Toll Plaza' },
-            { lat: 25.4500, lng: 81.8500, name: 'Allahabad Toll Plaza' },
-            { lat: 23.1815, lng: 72.6369, name: 'Ahmedabad Toll Plaza' },
-
-            // West India
-            { lat: 19.1500, lng: 72.8500, name: 'Mumbai Toll Plaza' },
-            { lat: 18.5500, lng: 73.8500, name: 'Pune Toll Plaza' },
-            { lat: 21.1500, lng: 72.8000, name: 'Surat Toll Plaza' },
-
-            // South India
-            { lat: 12.9500, lng: 77.5500, name: 'Bangalore Toll Plaza' },
-            { lat: 13.0500, lng: 80.2500, name: 'Chennai Toll Plaza' },
-
-            // East India
-            { lat: 22.6500, lng: 88.4000, name: 'Kolkata Toll Plaza' },
-            { lat: 23.3500, lng: 85.3000, name: 'Ranchi Toll Plaza' },
-
-            // Central India
-            { lat: 23.2500, lng: 77.4000, name: 'Bhopal Toll Plaza' },
-            { lat: 21.1500, lng: 79.0833, name: 'Nagpur Toll Plaza' }
-        ];
-
-        tollPlazas.forEach(toll => {
-            L.marker([toll.lat, toll.lng], { icon: tollIcon }).addTo(map)
-                .bindPopup(`
-                    <div style="font-family: Arial, sans-serif; max-width: 200px;">
-                        <h4 style="margin: 0 0 8px 0; color: #004271;">${toll.name}</h4>
-                        <p style="margin: 4px 0;"><strong>Type:</strong> Toll Plaza</p>
-                        <p style="margin: 4px 0;"><strong>Location:</strong> ${toll.lat.toFixed(4)}, ${toll.lng.toFixed(4)}</p>
+                    title: type === 'start' ? 'Pickup: ' + location : 'Delivery: ' + location,
+                    animation: google.maps.Animation.DROP
+                });
+                
+                dashboardMarkers.push(marker);
+                
+                const contentString = `
+                    <div style="font-family: Arial, sans-serif; max-width: 280px; padding: 12px;">
+                        <h4 style="margin: 0 0 10px 0; color: ${iconColor}; border-bottom: 2px solid ${iconColor}; padding-bottom: 8px;">
+                            ${type === 'start' ? '📦 PICKUP' : '📍 DELIVERY'}
+                        </h4>
+                        <p style="margin: 6px 0;"><strong>Order No:</strong> ${transport.order_no || transport.id}</p>
+                        <p style="margin: 6px 0;"><strong>Location:</strong> ${location}</p>
+                        <p style="margin: 6px 0;"><strong>Consigner:</strong> ${transport.consigner || 'N/A'}</p>
+                        <p style="margin: 6px 0;"><strong>Receiver:</strong> ${transport.receiver_name || 'N/A'}</p>
+                        ${type === 'end' ? '<p style="margin: 6px 0; color: #FF5722; font-weight: bold;"><strong>Delivery Date:</strong> ' + deliveryDate + '</p>' : ''}
+                        <p style="margin: 6px 0;"><strong>Status:</strong> <span style="color: #317ff1;">${transport.status || 'N/A'}</span></p>
+                        <p style="margin: 10px 0 0 0;"><a href="/admin/consignment/${transport.id}" style="color: #317ff1;">View Details →</a></p>
                     </div>
-                `);
+                `;
+                
+                marker.addListener('click', () => {
+                    dashboardInfoWindow.setContent(contentString);
+                    dashboardInfoWindow.open(dashboardMap, marker);
+                });
+            } else {
+                console.log('Geocoding failed for ' + location + ': ' + status);
+            }
         });
+    }
 
-        // Add other points of interest (cities, national parks, etc.)
-        const pointsOfInterest = [
-            // Major Cities
-            { lat: 28.6139, lng: 77.2090, name: 'New Delhi', type: 'capital' },
-            { lat: 19.0760, lng: 72.8777, name: 'Mumbai', type: 'city' },
-            { lat: 13.0827, lng: 80.2707, name: 'Chennai', type: 'city' },
-            { lat: 22.5726, lng: 88.3639, name: 'Kolkata', type: 'city' },
-            { lat: 12.9716, lng: 77.5946, name: 'Bangalore', type: 'city' },
-            { lat: 23.0225, lng: 72.5714, name: 'Ahmedabad', type: 'city' },
-            { lat: 21.1702, lng: 72.8311, name: 'Surat', type: 'city' },
-            { lat: 26.8467, lng: 80.9462, name: 'Lucknow', type: 'city' },
-            { lat: 25.5941, lng: 85.1376, name: 'Patna', type: 'city' },
-            { lat: 23.2599, lng: 77.4126, name: 'Bhopal', type: 'city' },
-            { lat: 22.7196, lng: 75.8577, name: 'Indore', type: 'city' },
-            { lat: 21.1500, lng: 79.0833, name: 'Nagpur', type: 'city' },
-            { lat: 18.5204, lng: 73.8567, name: 'Pune', type: 'city' },
-            { lat: 17.3850, lng: 78.4867, name: 'Hyderabad', type: 'city' },
-            { lat: 28.7041, lng: 77.1025, name: 'Gurgaon', type: 'city' },
-            { lat: 28.4595, lng: 77.0266, name: 'Noida', type: 'city' },
-
-            // National Parks and Wildlife Sanctuaries
-            { lat: 25.3176, lng: 82.9739, name: 'Kuno National Park', type: 'park' },
-            { lat: 24.0452, lng: 83.2681, name: 'Palamau Tiger Reserve', type: 'park' },
-            { lat: 23.6756, lng: 85.2793, name: 'Hazaribagh Wildlife Sanctuary', type: 'park' },
-            { lat: 21.1644, lng: 79.3230, name: 'Pench National Park', type: 'park' },
-            { lat: 21.2500, lng: 81.6296, name: 'Indravati National Park', type: 'park' },
-            { lat: 19.9615, lng: 79.3025, name: 'Tadoba Andhari Tiger Reserve', type: 'park' },
-            { lat: 17.1899, lng: 79.9000, name: 'Nagarjunsagar-Srisailam Tiger Reserve', type: 'park' },
-            { lat: 11.6670, lng: 76.7000, name: 'Mudumalai National Park', type: 'park' },
-            { lat: 11.5000, lng: 76.5000, name: 'Bandipur National Park', type: 'park' },
-            { lat: 20.1627, lng: 85.8312, name: 'Bhitarkanika National Park', type: 'park' },
-            { lat: 27.5833, lng: 77.3333, name: 'Keoladeo National Park', type: 'park' },
-
-            // Other Points of Interest
-            { lat: 25.3100, lng: 82.9800, name: 'Varanasi', type: 'heritage' },
-            { lat: 27.1767, lng: 78.0081, name: 'Agra (Taj Mahal)', type: 'heritage' },
-            { lat: 26.9124, lng: 75.7873, name: 'Jaipur', type: 'heritage' },
-            { lat: 15.3333, lng: 76.4667, name: 'Hampi', type: 'heritage' },
-            { lat: 10.7833, lng: 78.7000, name: 'Trichy', type: 'heritage' },
-            { lat: 13.0524, lng: 77.5946, name: 'Electronic City', type: 'industrial' },
-            { lat: 18.5500, lng: 73.9500, name: 'Magarpatta City', type: 'industrial' }
-        ];
-
-        // Create icons for different types of points
-        const cityIcon = L.divIcon({
-            html: '<i class="fas fa-city" style="color: #666; font-size: 16px;"></i>',
-            iconSize: [25, 25],
-            iconAnchor: [12, 12]
-        });
-
-        const parkIcon = L.divIcon({
-            html: '<i class="fas fa-tree" style="color: #2E7D32; font-size: 16px;"></i>',
-            iconSize: [25, 25],
-            iconAnchor: [12, 12]
-        });
-
-        const heritageIcon = L.divIcon({
-            html: '<i class="fas fa-landmark" style="color: #795548; font-size: 16px;"></i>',
-            iconSize: [25, 25],
-            iconAnchor: [12, 12]
-        });
-
-        const industrialIcon = L.divIcon({
-            html: '<i class="fas fa-industry" style="color: #607D8B; font-size: 16px;"></i>',
-            iconSize: [25, 25],
-            iconAnchor: [12, 12]
-        });
-
-        // Add points of interest to the map
-        pointsOfInterest.forEach(point => {
-            let icon;
-            switch(point.type) {
-                case 'capital':
-                    icon = L.divIcon({
-                        html: '<i class="fas fa-star" style="color: #FFD700; font-size: 18px;"></i>',
-                        iconSize: [25, 25],
-                        iconAnchor: [12, 12]
+    // Draw route between pickup and delivery
+    function drawTripRoute(origin, destination, transport, color) {
+        const request = {
+            origin: origin,
+            destination: destination,
+            travelMode: 'DRIVING',
+            provideRouteAlternatives: true
+        };
+        
+        tripDirectionsService.route(request, function(response, status) {
+            if (status === 'OK') {
+                // Create a colored polyline for this route
+                const route = response.routes[0];
+                const legs = route.legs[0];
+                
+                const routePolyline = new google.maps.Polyline({
+                    path: route.overview_path,
+                    geodesic: true,
+                    strokeColor: color,
+                    strokeWeight: 4,
+                    strokeOpacity: 0.8,
+                    map: dashboardMap
+                });
+                
+                dashboardPolylines.push(routePolyline);
+                
+                // Add delivery date label at midpoint of route
+                const midpointIndex = Math.floor(route.overview_path.length / 2);
+                const midpoint = route.overview_path[midpointIndex];
+                
+                if (midpoint && transport.delivery_date) {
+                    const deliveryDate = new Date(transport.delivery_date).toLocaleDateString('en-GB', { 
+                        day: '2-digit', month: 'short' 
                     });
-                    break;
+                    
+                    // Create info window for midpoint label
+                    const midpointMarker = new google.maps.Marker({
+                        position: midpoint,
+                        map: dashboardMap,
+                        icon: {
+                            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30"><rect x="0" y="0" width="100" height="30" rx="15" fill="' + color + '"/><text x="50" y="20" text-anchor="middle" fill="white" font-size="11" font-weight="bold">📅 ' + deliveryDate + '</text></svg>'
+                            ),
+                            scaledSize: new google.maps.Size(100, 30),
+                            anchorPoint: new google.maps.Point(50, 15)
+                        },
+                        title: 'Expected Delivery: ' + transport.delivery_date,
+                        zIndex: 1000
+                    });
+                    
+                    dashboardMarkers.push(midpointMarker);
+                }
+                
+                // Add click listener to show route details
+                const routeContentString = `
+                    <div style="font-family: Arial, sans-serif; max-width: 280px; padding: 12px;">
+                        <h4 style="margin: 0 0 10px 0; color: ${color}; border-bottom: 2px solid ${color}; padding-bottom: 8px;">
+                            🛣️ Trip Route
+                        </h4>
+                        <p style="margin: 6px 0;"><strong>Order No:</strong> ${transport.order_no || transport.id}</p>
+                        <p style="margin: 6px 0;"><strong>From:</strong> ${origin}</p>
+                        <p style="margin: 6px 0;"><strong>To:</strong> ${destination}</p>
+                        <p style="margin: 6px 0;"><strong>Distance:</strong> ${legs.distance.text}</p>
+                        <p style="margin: 6px 0;"><strong>Duration:</strong> ${legs.duration.text}</p>
+                        <p style="margin: 6px 0;"><strong>Vehicle:</strong> ${transport.assigned_vehicle_no || 'N/A'}</p>
+                        <p style="margin: 6px 0;"><strong>Driver:</strong> ${transport.assigned_driver || 'N/A'}</p>
+                        <p style="margin: 10px 0 0 0;"><a href="/admin/consignment/${transport.id}" style="color: #317ff1;">View Full Details →</a></p>
+                    </div>
+                `;
+                
+                google.maps.event.addListener(routePolyline, 'click', function(event) {
+                    dashboardInfoWindow.setContent(routeContentString);
+                    dashboardInfoWindow.setPosition(event.latLng);
+                    dashboardInfoWindow.open(dashboardMap);
+                });
+            } else {
+                console.log('Directions request failed for ' + origin + ' to ' + destination + ': ' + status);
+                // Draw straight line as fallback
+                drawStraightLineRoute(origin, destination, transport, color);
+            }
+        });
+    }
+
+    // Draw straight line route as fallback
+    function drawStraightLineRoute(origin, destination, transport, color) {
+        const geocoder = new google.maps.Geocoder();
+        
+        geocoder.geocode({ address: origin }, function(results1, status1) {
+            let lat1 = 25.2048, lng1 = 55.2708;
+            if (status1 === 'OK' && results1[0]) {
+                lat1 = results1[0].geometry.location.lat();
+                lng1 = results1[0].geometry.location.lng();
+            }
+            
+            geocoder.geocode({ address: destination }, function(results2, status2) {
+                let lat2 = 24.4539, lng2 = 54.3773;
+                if (status2 === 'OK' && results2[0]) {
+                    lat2 = results2[0].geometry.location.lat();
+                    lng2 = results2[0].geometry.location.lng();
+                }
+                
+                const straightLine = new google.maps.Polyline({
+                    path: [
+                        { lat: lat1, lng: lng1 },
+                        { lat: lat2, lng: lng2 }
+                    ],
+                    geodesic: true,
+                    strokeColor: color,
+                    strokeWeight: 4,
+                    strokeOpacity: 0.8,
+                    map: dashboardMap
+                });
+                
+                dashboardPolylines.push(straightLine);
+            });
+        });
+    }
+
+    // Add vehicle markers (fallback when no ongoing transports)
+    function addVehicleMarkers() {
+        const vehicles = [
+            { lat: 25.2048, lng: 55.2708, status: 'running', name: 'Truck DXB-001', number: 'DXB-1234' },
+            { lat: 24.4539, lng: 54.3773, status: 'running', name: 'Truck AUH-002', number: 'AUH-5678' },
+            { lat: 25.2854, lng: 55.3692, status: 'running', name: 'Truck SHR-003', number: 'SHR-9012' },
+            { lat: 21.4858, lng: 39.1925, status: 'running', name: 'Truck JED-004', number: 'JED-3456' },
+            { lat: 24.7136, lng: 46.6753, status: 'running', name: 'Truck RYD-005', number: 'RYD-7890' }
+        ];
+        
+        vehicles.forEach(vehicle => {
+            const icon = {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4CAF50" stroke="white" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="white" stroke-width="2"/></svg>'),
+                scaledSize: new google.maps.Size(32, 32),
+                anchorPoint: new google.maps.Point(16, 16)
+            };
+            
+            const marker = new google.maps.Marker({
+                position: { lat: vehicle.lat, lng: vehicle.lng },
+                map: dashboardMap,
+                icon: icon,
+                title: vehicle.name,
+                animation: google.maps.Animation.DROP
+            });
+            
+            dashboardMarkers.push(marker);
+            
+            const contentString = `
+                <div style="font-family: Arial, sans-serif; max-width: 220px; padding: 10px;">
+                    <h4 style="margin: 0 0 10px 0; color: #004271; border-bottom: 2px solid #004271; padding-bottom: 5px;">${vehicle.name}</h4>
+                    <p style="margin: 5px 0;"><strong>Status:</strong> <span style="color: #4CAF50">🟢 Running</span></p>
+                    <p style="margin: 5px 0;"><strong>Vehicle No:</strong> ${vehicle.number}</p>
+                    <p style="margin: 5px 0;"><strong>Location:</strong> ${vehicle.lat.toFixed(4)}, ${vehicle.lng.toFixed(4)}</p>
+                    <p style="margin: 5px 0;"><strong>Last Update:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+            `;
+            
+            marker.addListener('click', () => {
+                dashboardInfoWindow.setContent(contentString);
+                dashboardInfoWindow.open(dashboardMap, marker);
+            });
+        });
+    }
+
+    // Add points of interest (cities, industrial areas)
+    function addPointsOfInterest() {
+        const pointsOfInterest = [
+            // UAE Major Cities
+            { lat: 25.2048, lng: 55.2708, name: 'Dubai', type: 'city' },
+            { lat: 24.4539, lng: 54.3773, name: 'Abu Dhabi', type: 'city' },
+            { lat: 25.2854, lng: 55.3692, name: 'Sharjah', type: 'city' },
+            { lat: 25.5828, lng: 55.6472, name: 'Ajman', type: 'city' },
+            { lat: 25.7895, lng: 55.9432, name: 'Ras Al Khaimah', type: 'city' },
+            // Saudi Arabia Major Cities
+            { lat: 24.7136, lng: 46.6753, name: 'Riyadh', type: 'city' },
+            { lat: 21.4858, lng: 39.1925, name: 'Jeddah', type: 'city' },
+            { lat: 26.4200, lng: 50.1000, name: 'Dammam', type: 'city' },
+            // Qatar Major Cities
+            { lat: 25.3548, lng: 51.1839, name: 'Doha', type: 'city' },
+            // Bahrain Major Cities
+            { lat: 26.0667, lng: 50.5577, name: 'Manama', type: 'city' },
+            // Industrial Areas
+            { lat: 24.9800, lng: 55.0500, name: 'Jebel Ali Free Zone', type: 'industrial' }
+        ];
+        
+        pointsOfInterest.forEach(point => {
+            let iconColor, iconSymbol;
+            switch(point.type) {
                 case 'city':
-                    icon = cityIcon;
-                    break;
-                case 'park':
-                    icon = parkIcon;
-                    break;
-                case 'heritage':
-                    icon = heritageIcon;
+                    iconColor = '#9C27B0';
+                    iconSymbol = '🏙';
                     break;
                 case 'industrial':
-                    icon = industrialIcon;
+                    iconColor = '#607D8B';
+                    iconSymbol = '🏭';
                     break;
+                default:
+                    iconColor = '#607D8B';
+                    iconSymbol = '📍';
             }
-
-            L.marker([point.lat, point.lng], { icon: icon }).addTo(map)
-                .bindPopup(`
-                    <div style="font-family: Arial, sans-serif; max-width: 200px;">
-                        <h4 style="margin: 0 0 8px 0; color: #004271;">${point.name}</h4>
-                        <p style="margin: 4px 0;"><strong>Type:</strong> ${point.type}</p>
-                        <p style="margin: 4px 0;"><strong>Location:</strong> ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</p>
-                    </div>
-                `);
+            
+            const marker = new google.maps.Marker({
+                position: { lat: point.lat, lng: point.lng },
+                map: dashboardMap,
+                icon: {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="' + iconColor + '" stroke="white" stroke-width="1"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="12">' + iconSymbol + '</text></svg>'),
+                    scaledSize: new google.maps.Size(24, 24),
+                    anchorPoint: new google.maps.Point(12, 12)
+                },
+                title: point.name
+            });
+            
+            dashboardMarkers.push(marker);
+            
+            const typeLabel = point.type.charAt(0).toUpperCase() + point.type.slice(1);
+            
+            const contentString = `
+                <div style="font-family: Arial, sans-serif; max-width: 200px; padding: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: #333;">${point.name}</h4>
+                    <p style="margin: 4px 0;"><strong>Type:</strong> ${typeLabel}</p>
+                </div>
+            `;
+            
+            marker.addListener('click', () => {
+                dashboardInfoWindow.setContent(contentString);
+                dashboardInfoWindow.open(dashboardMap, marker);
+            });
         });
+    }
 
-        // Fit map to show all markers
-        const allMarkers = [
-            ...vehicles.map(v => L.marker([v.lat, v.lng])),
-            ...tollPlazas.map(t => L.marker([t.lat, t.lng], { icon: tollIcon })),
-            ...pointsOfInterest.map(p => {
-                let icon;
-                switch(p.type) {
-                    case 'capital':
-                        icon = L.divIcon({
-                            html: '<i class="fas fa-star" style="color: #FFD700; font-size: 18px;"></i>',
-                            iconSize: [25, 25]
-                        });
-                        break;
-                    case 'city':
-                        icon = cityIcon;
-                        break;
-                    case 'park':
-                        icon = parkIcon;
-                        break;
-                    case 'heritage':
-                        icon = heritageIcon;
-                        break;
-                    case 'industrial':
-                        icon = industrialIcon;
-                        break;
-                }
-                return L.marker([p.lat, p.lng], { icon: icon });
-            })
-        ];
+    // Fit map to show all markers
+    function fitMapToMarkers() {
+        if (dashboardMarkers.length === 0) return;
+        
+        const bounds = new google.maps.LatLngBounds();
+        dashboardMarkers.forEach(marker => {
+            bounds.extend(marker.getPosition());
+        });
+        
+        dashboardMap.fitBounds(bounds, 50);
+    }
 
-        const group = new L.featureGroup(allMarkers);
-        map.fitBounds(group.getBounds().pad(0.2));
+    // Change map type
+    function changeDashboardMapType(mapType) {
+        if (!dashboardMap) return;
+        
+        const mapTypes = {
+            'roadmap': google.maps.MapTypeId.ROADMAP,
+            'satellite': google.maps.MapTypeId.SATELLITE,
+            'terrain': google.maps.MapTypeId.TERRAIN,
+            'hybrid': google.maps.MapTypeId.HYBRID
+        };
+        
+        dashboardMap.setMapTypeId(mapTypes[mapType]);
+        
+        document.querySelectorAll('.map-type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('[data-map-type="' + mapType + '"]').classList.add('active');
+    }
+
+    // Sidebar toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Google Maps after a short delay
+        setTimeout(function() {
+            initDashboardMap();
+        }, 1000);
 
         // Vehicle status card click handlers
         const statusCards = document.querySelectorAll('.status-card');
@@ -1409,8 +1472,7 @@
                               this.classList.contains('idle') ? 'idle' :
                               this.classList.contains('inactive') ? 'inactive' : 'nodata';
 
-                console.log(`Filtering vehicles by status: ${status}`);
-                // Add your filtering logic here
+                console.log('Filtering vehicles by status: ' + status);
             });
         });
     });

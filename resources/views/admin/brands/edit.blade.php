@@ -390,30 +390,7 @@
 
 <div class="dashboard-wrapper">
 <div class="form-container-wrapper">
-    <!-- Top Navigation Bar -->
-    <div class="top-navbar">
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="Search..">
-        </div>
-
-        <div class="task-dropdown">
-            Task <i class="fas fa-chevron-down"></i>
-        </div>
-
-        <div class="nav-actions">
-            <button class="btn-main-account">Go To Main Account</button>
-            <button class="icon-btn">
-                <i class="fas fa-cog"></i>
-            </button>
-            <button class="icon-btn">
-                <i class="fas fa-bell"></i>
-            </button>
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
-    </div>
+   
 
     <!-- Form Container -->
     <div class="form-container">

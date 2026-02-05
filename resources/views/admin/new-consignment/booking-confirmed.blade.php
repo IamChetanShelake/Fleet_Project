@@ -319,7 +319,7 @@
 <div class="dashboard-wrapper">
 <div class="consignment-container">
     <!-- Top Navigation Bar -->
-    <div class="top-navbar">
+    <!-- <div class="top-navbar">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="search-input" placeholder="Search..">
@@ -341,7 +341,7 @@
                 <i class="fas fa-user"></i>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Updated Form Steps -->
     <div class="form-steps">
@@ -390,7 +390,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Total Amount:</span>
-                <span class="detail-value">₹{{ $transport->total_cost ?? '0.00' }}</span>
+                <span class="detail-value">{{ $transport->total_cost ?? '0.00' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Status:</span>
@@ -400,7 +400,7 @@
 
         <div class="action-buttons">
             <a href="{{ route('admin.new-consignment.index') }}" class="btn btn-primary">Create New Consignment</a>
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Go to Dashboard</a>
+            <a href="{{ route('admin.new-consignment.index') }}" class="btn btn-secondary">Go to Consignment</a>
         </div>
     </div>
 </div>

@@ -59,16 +59,8 @@ class NewConsignmentController extends Controller
     {
         $request->validate([
             'consigner' => 'required|string',
-            'pickup_location' => 'required|string',
-            'source_pincode' => 'required|string',
-            'source_city' => 'required|string',
-            'source_state' => 'required|string',
-            'source_country' => 'required|string',
-            'delivery_location' => 'required|string',
-            'address_line' => 'required|string',
-            'dest_pincode' => 'required|string',
-            'dest_state' => 'required|string',
-            'dest_country' => 'required|string',
+            'pickup_location' => 'nullable|string',
+            'delivery_location' => 'nullable|string',
             'pickup_datetime' => 'required|date',
             'delivery_date' => 'required|date',
             'receiver_name' => 'required|string',
@@ -83,8 +75,8 @@ class NewConsignmentController extends Controller
             if ($transport && $transport->status === 'draft') {
                 // Update existing draft transport
                 $transport->update($request->only([
-                    'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country',
-                    'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country',
+                    'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country', 'source_building_no', 'source_maps_link',
+                    'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country', 'dest_building_no', 'dest_maps_link',
                     'pickup_datetime', 'delivery_date', 'receiver_name', 'receiver_mobile'
                 ]));
                 return redirect()->route('admin.freight-assignment.index');
@@ -101,8 +93,8 @@ class NewConsignmentController extends Controller
         if ($existingDraft) {
             // Update existing draft instead of creating new
             $existingDraft->update($request->only([
-                'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country',
-                'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country',
+                'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country', 'source_building_no', 'source_maps_link',
+                'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country', 'dest_building_no', 'dest_maps_link',
                 'pickup_datetime', 'delivery_date', 'receiver_name', 'receiver_mobile'
             ]));
             session(['transport_id' => $existingDraft->id]);
@@ -111,8 +103,8 @@ class NewConsignmentController extends Controller
 
         // Create new transport only if no existing draft found
         $transport = Transport::create($request->only([
-            'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country',
-            'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country',
+            'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country', 'source_building_no', 'source_maps_link',
+            'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country', 'dest_building_no', 'dest_maps_link',
             'pickup_datetime', 'delivery_date', 'receiver_name', 'receiver_mobile'
         ]));
 
@@ -131,8 +123,26 @@ class NewConsignmentController extends Controller
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
-
-        return view('admin.new-consignment.show', compact('transport'));
+        
+        // Fetch assigned vehicle details
+        $assignedVehicle = null;
+        if ($transport->assigned_vehicle_no) {
+            $assignedVehicle = Vehicle::where('vehicle_number', $transport->assigned_vehicle_no)->first();
+        }
+        
+        // Fetch assigned driver details from driving teams
+        $assignedDriver = null;
+        if ($transport->assigned_driver_id) {
+            $assignedDriver = \App\Models\DrivingTeam::where('driver_id', $transport->assigned_driver_id)->first();
+            if (!$assignedDriver) {
+                // Also try searching by name
+                $assignedDriver = \App\Models\DrivingTeam::where('name', $transport->assigned_driver)->first();
+            }
+        } elseif ($transport->assigned_driver) {
+            $assignedDriver = \App\Models\DrivingTeam::where('name', $transport->assigned_driver)->first();
+        }
+        
+        return view('admin.new-consignment.show', compact('transport', 'assignedVehicle', 'assignedDriver'));
     }
 
     /**
@@ -148,17 +158,8 @@ class NewConsignmentController extends Controller
         // Store transport ID in session for the edit flow
         session(['transport_id' => $transport->id]);
 
-        // Redirect to appropriate step based on status
-        switch ($transport->status) {
-            case 'draft':
-                return redirect()->route('admin.new-consignment.create');
-            case 'assigned':
-                return redirect()->route('admin.freight-assignment.index');
-            case 'confirmed':
-                return redirect()->route('admin.charges-advance.index');
-            default:
-                return redirect()->route('admin.new-consignment.create');
-        }
+        // Always start from the first step (Route & Parties) so user can edit all steps
+        return view('admin.new-consignment.edit-create', compact('transport'));
     }
 
     /**
@@ -166,7 +167,39 @@ class NewConsignmentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $transport = Transport::find($id);
+        if (!$transport) {
+            return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
+        }
+
+        $request->validate([
+            'consigner' => 'required|string',
+            'pickup_location' => 'nullable|string',
+            'delivery_location' => 'nullable|string',
+            'pickup_datetime' => 'required|date',
+            'delivery_date' => 'required|date',
+            'receiver_name' => 'required|string',
+            'receiver_mobile' => 'required|string',
+        ]);
+
+        $transport->update($request->only([
+            'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country', 'source_building_no', 'source_maps_link',
+            'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country', 'dest_building_no', 'dest_maps_link',
+            'pickup_datetime', 'delivery_date', 'receiver_name', 'receiver_mobile'
+        ]));
+
+        // Check if this is an edit flow (session has transport_id) or regular update
+        if (session()->has('transport_id') && session('transport_id') == $id) {
+            // Edit flow - redirect to next edit step (freight-assignment)
+            return redirect()->route('admin.freight-assignment.edit', ['id' => $id]);
+        }
+
+        // Regular update - redirect based on status
+        if ($transport->status === 'draft') {
+            return redirect()->route('admin.freight-assignment.index');
+        }
+
+        return redirect()->route('admin.consignment.index')->with('success', 'Consignment updated successfully.');
     }
 
     /**
@@ -184,26 +217,81 @@ class NewConsignmentController extends Controller
             return redirect()->route('admin.new-consignment.create')->with('error', 'Transport record not found. Please start over.');
         }
 
-        // If editing an existing assigned transport, show the previously assigned vehicle too
-        if ($transport->status === 'assigned' && $transport->assigned_vehicle_no) {
-            $assignedVehicle = \App\Models\Vehicle::where('vehicle_number', $transport->assigned_vehicle_no)->first();
-            if ($assignedVehicle) {
-                // Include the assigned vehicle in the list
-                $vehicles = \App\Models\Vehicle::whereIn('status', ['available', 'assigned'])
-                    ->where(function($query) use ($transport) {
-                        $query->where('status', 'available')
-                              ->orWhere('vehicle_number', $transport->assigned_vehicle_no);
-                    })
-                    ->get();
-            } else {
-                $vehicles = \App\Models\Vehicle::where('status', 'available')->get();
+        $currentTripType = $transport->trip_type ?? 'LTL'; // Default to LTL if not set yet
+        
+        // Get all vehicle numbers that are assigned to FTL trips (these should be hidden for new assignments)
+        $ftlAssignedVehicleNumbers = Transport::where('trip_type', 'FTL')
+            ->whereNotNull('assigned_vehicle_no')
+            ->pluck('assigned_vehicle_no')
+            ->toArray();
+        
+        // Get all vehicles with their assignment info
+        $allVehicles = Vehicle::all();
+        
+        // Build vehicle collection with assignment info
+        $vehicles = $allVehicles->map(function($vehicle) use ($ftlAssignedVehicleNumbers, $currentTripType) {
+            // Check if vehicle is assigned to FTL - hide it
+            if (in_array($vehicle->vehicle_number, $ftlAssignedVehicleNumbers)) {
+                return null;
             }
-        } else {
-            // Fetch only available vehicles for new assignments
-            $vehicles = \App\Models\Vehicle::where('status', 'available')->get();
+            
+            // Check if vehicle is assigned to LTL trip
+            $assignedToLTL = Transport::where('trip_type', 'LTL')
+                ->where('assigned_vehicle_no', $vehicle->vehicle_number)
+                ->first();
+            
+            $vehicle->assigned_to_ltl = $assignedToLTL ? true : false;
+            $vehicle->current_consignment_id = $assignedToLTL ? $assignedToLTL->id : null;
+            
+            return $vehicle;
+        })->filter();
+
+        return view('admin.new-consignment.freight-assignment', compact('transport', 'vehicles', 'currentTripType'));
+    }
+
+    /**
+     * Show the freight assignment edit form.
+     */
+    public function editFreightAssignment(string $id)
+    {
+        $transport = Transport::find($id);
+        if (!$transport) {
+            return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
 
-        return view('admin.new-consignment.freight-assignment', compact('transport', 'vehicles'));
+        // Store transport ID in session for the edit flow
+        session(['transport_id' => $transport->id]);
+
+        $currentTripType = $transport->trip_type ?? 'LTL';
+        
+        // Get all vehicle numbers that are assigned to FTL trips (these should be hidden for new assignments)
+        $ftlAssignedVehicleNumbers = Transport::where('trip_type', 'FTL')
+            ->whereNotNull('assigned_vehicle_no')
+            ->pluck('assigned_vehicle_no')
+            ->toArray();
+        
+        // Get all vehicles with their assignment info
+        $allVehicles = Vehicle::all();
+        
+        // Build vehicle collection with assignment info
+        $vehicles = $allVehicles->map(function($vehicle) use ($ftlAssignedVehicleNumbers, $transport) {
+            // Check if vehicle is assigned to FTL - hide it
+            if (in_array($vehicle->vehicle_number, $ftlAssignedVehicleNumbers)) {
+                return null;
+            }
+            
+            // Check if vehicle is assigned to LTL trip
+            $assignedToLTL = Transport::where('trip_type', 'LTL')
+                ->where('assigned_vehicle_no', $vehicle->vehicle_number)
+                ->first();
+            
+            $vehicle->assigned_to_ltl = $assignedToLTL ? true : false;
+            $vehicle->current_consignment_id = $assignedToLTL ? $assignedToLTL->id : null;
+            
+            return $vehicle;
+        })->filter();
+
+        return view('admin.new-consignment.edit-freight', compact('transport', 'vehicles', 'currentTripType'));
     }
 
     /**
@@ -245,6 +333,8 @@ class NewConsignmentController extends Controller
             'handling_instructions', 'third_party_name', 'third_party_vehicle'
         ]));
 
+        $transport->total_distance = $request->total_distance;
+        $transport->total_travel_time = $request->total_travel_time;
         $transport->status = 'assigned';
         $transport->save();
 
@@ -256,6 +346,67 @@ class NewConsignmentController extends Controller
         }
 
         return redirect()->route('admin.charges-advance.index');
+    }
+
+    /**
+     * Update freight assignment data.
+     */
+    public function updateFreightAssignment(Request $request, string $id)
+    {
+        $transport = Transport::find($id);
+        if (!$transport) {
+            return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
+        }
+
+        $request->validate([
+            'party_lr_no' => 'required|string',
+            'packages' => 'required|integer',
+            'weight' => 'required|numeric',
+            'invoice_no' => 'required|string',
+            'invoice_value' => 'required|string',
+            'trip_type' => 'required|in:FTL,LTL,Express',
+            'vehicle_type' => 'required|string',
+            'assigned_vehicle_no' => 'required|string',
+            'assigned_driver' => 'required|string',
+            'assigned_driver_id' => 'required|string',
+            'handling_instructions' => 'nullable|string',
+            'third_party_name' => 'nullable|string',
+            'third_party_vehicle' => 'nullable|string',
+        ]);
+
+        // If changing vehicle, free up the old vehicle
+        if ($transport->assigned_vehicle_no && $transport->assigned_vehicle_no !== $request->assigned_vehicle_no) {
+            $oldVehicle = Vehicle::where('vehicle_number', $transport->assigned_vehicle_no)->first();
+            if ($oldVehicle) {
+                $oldVehicle->status = 'available';
+                $oldVehicle->save();
+            }
+        }
+
+        $transport->update($request->only([
+            'party_lr_no', 'packages', 'weight', 'invoice_no', 'invoice_value', 'trip_type',
+            'vehicle_type', 'assigned_vehicle_no', 'assigned_driver', 'assigned_driver_id',
+            'handling_instructions', 'third_party_name', 'third_party_vehicle'
+        ]));
+
+        // Update distance and travel time
+        $transport->total_distance = $request->total_distance;
+        $transport->total_travel_time = $request->total_travel_time;
+
+        // Update the assigned vehicle status to 'assigned'
+        $vehicle = Vehicle::where('vehicle_number', $request->assigned_vehicle_no)->first();
+        if ($vehicle) {
+            $vehicle->status = 'assigned';
+            $vehicle->save();
+        }
+
+        // Check if this is an edit flow (session has transport_id) or regular update
+        if (session()->has('transport_id') && session('transport_id') == $id) {
+            // Edit flow - redirect to next edit step (charges-advance)
+            return redirect()->route('admin.charges-advance.edit', ['id' => $id]);
+        }
+
+        return redirect()->route('admin.consignment.index')->with('success', 'Consignment updated successfully.');
     }
 
     /**
@@ -277,12 +428,37 @@ class NewConsignmentController extends Controller
     }
 
     /**
+     * Show the charges & advance edit form.
+     */
+    public function editChargesAdvance(string $id)
+    {
+        $transport = Transport::find($id);
+        if (!$transport) {
+            return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
+        }
+
+        // Store transport ID in session for the edit flow
+        session(['transport_id' => $transport->id]);
+
+        return view('admin.new-consignment.edit-charges', compact('transport'));
+    }
+
+    /**
      * Store charges & advance data.
      */
     public function storeChargesAdvance(Request $request)
     {
         $transportId = session('transport_id');
         $transport = Transport::find($transportId);
+
+        // Validate that at least one freight option is filled
+        $hasFreightWeight = $request->filled('freight_weight') && $request->filled('rate_per_unit');
+        $hasPackageRate = $request->filled('total_packages') && $request->filled('rate_per_package');
+        $hasFixedCost = $request->filled('fixed_cost');
+
+        if (!$hasFreightWeight && !$hasPackageRate && !$hasFixedCost) {
+            return back()->withErrors(['freight' => 'Please fill at least one freight option (Rate By Weight, Rate By Package, or Fixed Rate)'])->withInput();
+        }
 
         $request->validate([
             'confirm_booking' => 'required|accepted',
@@ -291,16 +467,79 @@ class NewConsignmentController extends Controller
 
         // Handle freight calculation
         $freightCost = 0;
-        if ($request->filled('freight_weight') && $request->filled('rate_per_unit')) {
+        if ($hasFreightWeight) {
             $transport->freight_weight = $request->freight_weight;
             $transport->weight_unit = $request->weight_unit;
             $transport->rate_per_unit = $request->rate_per_unit;
             $freightCost = $request->freight_weight * $request->rate_per_unit;
-        } elseif ($request->filled('total_packages') && $request->filled('rate_per_package')) {
+        } elseif ($hasPackageRate) {
             $transport->total_packages = $request->total_packages;
             $transport->rate_per_package = $request->rate_per_package;
             $freightCost = $request->total_packages * $request->rate_per_package;
-        } elseif ($request->filled('fixed_cost')) {
+        } elseif ($hasFixedCost) {
+            $transport->fixed_cost = $request->fixed_cost;
+            $freightCost = $request->fixed_cost;
+        }
+
+        // Handle expenses
+        $expenseTypes = $request->input('expense_type', []);
+        $expenseAmounts = $request->input('expense_amount', []);
+        $expenseRemarks = $request->input('expense_remarks', []);
+
+        $totalExpenses = 0;
+        foreach ($expenseAmounts as $amount) {
+            if (is_numeric($amount)) {
+                $totalExpenses += $amount;
+            }
+        }
+
+        $transport->expense_types = $expenseTypes;
+        $transport->expense_amounts = $expenseAmounts;
+        $transport->expense_remarks = $expenseRemarks;
+        $transport->final_notes = $request->final_notes;
+        $transport->total_cost = $freightCost + $totalExpenses;
+        $transport->status = 'confirmed';
+        $transport->save();
+
+        return redirect()->route('admin.booking-confirmed.index');
+    }
+
+    /**
+     * Update charges & advance data.
+     */
+    public function updateChargesAdvance(Request $request, string $id)
+    {
+        $transport = Transport::find($id);
+        if (!$transport) {
+            return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
+        }
+
+        // Validate that at least one freight option is filled
+        $hasFreightWeight = $request->filled('freight_weight') && $request->filled('rate_per_unit');
+        $hasPackageRate = $request->filled('total_packages') && $request->filled('rate_per_package');
+        $hasFixedCost = $request->filled('fixed_cost');
+
+        if (!$hasFreightWeight && !$hasPackageRate && !$hasFixedCost) {
+            return back()->withErrors(['freight' => 'Please fill at least one freight option (Rate By Weight, Rate By Package, or Fixed Rate)'])->withInput();
+        }
+
+        $request->validate([
+            'confirm_booking' => 'required|accepted',
+            'final_notes' => 'nullable|string',
+        ]);
+
+        // Handle freight calculation
+        $freightCost = 0;
+        if ($hasFreightWeight) {
+            $transport->freight_weight = $request->freight_weight;
+            $transport->weight_unit = $request->weight_unit;
+            $transport->rate_per_unit = $request->rate_per_unit;
+            $freightCost = $request->freight_weight * $request->rate_per_unit;
+        } elseif ($hasPackageRate) {
+            $transport->total_packages = $request->total_packages;
+            $transport->rate_per_package = $request->rate_per_package;
+            $freightCost = $request->total_packages * $request->rate_per_package;
+        } elseif ($hasFixedCost) {
             $transport->fixed_cost = $request->fixed_cost;
             $freightCost = $request->fixed_cost;
         }

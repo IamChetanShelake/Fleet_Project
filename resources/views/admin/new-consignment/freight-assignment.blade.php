@@ -259,17 +259,18 @@
     .form-group select {
         width: 100%;
         height: 45px;
-        border: 1px solid #313131;
+        border: 1px solid #b0b0b0;
         border-radius: 10px;
         padding: 0 17px;
         font-family: 'IBM Plex Sans', sans-serif;
         font-weight: 300;
         font-size: 14px;
         color: #4c4c4c;
+        background-color: #fafafa;
     }
 
     .form-group input::placeholder {
-        color: #4c4c4c;
+        color: #999999;
     }
 
     .form-group input:focus,
@@ -429,10 +430,9 @@
         height: 457px;
     }
 
-    .map-container img {
+    .map-container #map {
         width: 100%;
         height: 100%;
-        object-fit: cover;
     }
 
     .distance-badge {
@@ -611,7 +611,7 @@
 
 <div class="dashboard-wrapper">
     <!-- Top Navigation Bar -->
-    <div class="top-navbar">
+    <!-- <div class="top-navbar">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="search-input" placeholder="Search..">
@@ -633,7 +633,7 @@
                 <i class="fas fa-user"></i>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="consignment-container">
 
@@ -677,6 +677,10 @@
     <form class="consignment-form" method="POST" action="{{ route('admin.freight-assignment.store') }}">
         @csrf
         
+        <!-- Hidden fields for distance and travel time -->
+        <input type="hidden" name="total_distance" id="total_distance_value" value="{{ $transport->total_distance ?? '' }}">
+        <input type="hidden" name="total_travel_time" id="total_travel_time_value" value="{{ $transport->total_travel_time ?? '' }}">
+        
         <!-- Logistics Information Section -->
         <div class="section-header">
             <span class="section-icon" style="font-size: 28px;">ℹ️</span>
@@ -686,28 +690,28 @@
         <div class="logistics-grid">
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Party LR No <span class="required">*</span></label>
-                <input type="text" name="party_lr_no" value="{{ old('party_lr_no', $transport->party_lr_no) }}" placeholder="Enter Party LR No" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="party_lr_no" value="{{ old('party_lr_no', $transport->party_lr_no) }}" placeholder="Enter Party LR No" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">No. of Packages <span class="required">*</span></label>
-                <input type="text" name="packages" value="{{ old('packages', $transport->packages) }}" placeholder="Enter number of packages" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="packages" value="{{ old('packages', $transport->packages) }}" placeholder="Enter number of packages" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Weight (In Tons) <span class="required">*</span></label>
-                <input type="text" name="weight" value="{{ old('weight', $transport->weight) }}" placeholder="Enter weight in tons" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="weight" value="{{ old('weight', $transport->weight) }}" placeholder="Enter weight in tons" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Invoice No. <span class="required">*</span></label>
-                <input type="text" name="invoice_no" value="{{ old('invoice_no', $transport->invoice_no) }}" placeholder="Enter invoice number" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="invoice_no" value="{{ old('invoice_no', $transport->invoice_no) }}" placeholder="Enter invoice number" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Invoice Value <span class="required">*</span></label>
-                <input type="text" name="invoice_value" value="{{ old('invoice_value', $transport->invoice_value) }}" placeholder="Enter invoice value" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                <input type="text" name="invoice_value" value="{{ old('invoice_value', $transport->invoice_value) }}" placeholder="Enter invoice value" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
             </div>
             <div class="form-group">
                 <label style="font-size: 16px; font-weight: 300; font-family: 'Poppins', sans-serif; color: #313131;">Trip Type <span class="required">*</span></label>
                 <div class="select-wrapper">
-                    <select name="trip_type" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
+                    <select name="trip_type" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
                         <option value="FTL" {{ (old('trip_type', $transport->trip_type ?? '') == 'FTL') ? 'selected' : '' }}>FTL</option>
                         <option value="LTL" {{ (old('trip_type', $transport->trip_type ?? '') == 'LTL') ? 'selected' : '' }}>LTL</option>
                         <option value="Express" {{ (old('trip_type', $transport->trip_type ?? '') == 'Express') ? 'selected' : '' }}>Express</option>
@@ -730,7 +734,7 @@
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Required Vehicle Type</label>
                         <div class="select-wrapper">
-                            <select name="vehicle_type" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
+                            <select name="vehicle_type" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
                                 @foreach($vehicles->unique('vehicle_type') as $vehicle)
                                     <option value="{{ $vehicle->vehicle_type }}" {{ old('vehicle_type', $transport->vehicle_type ?? '') == $vehicle->vehicle_type ? 'selected' : '' }}>{{ $vehicle->vehicle_type }}</option>
                                 @endforeach
@@ -741,7 +745,7 @@
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Assigned Vehicle No</label>
                         <div class="select-wrapper">
-                            <select name="assigned_vehicle_no" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
+                            <select name="assigned_vehicle_no" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
                                 @foreach($vehicles as $vehicle)
                                     <option value="{{ $vehicle->vehicle_number }}" {{ old('assigned_vehicle_no', $transport->assigned_vehicle_no ?? '') == $vehicle->vehicle_number ? 'selected' : '' }}>{{ $vehicle->vehicle_number }}</option>
                                 @endforeach
@@ -752,7 +756,7 @@
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Assigned Driver</label>
                         <div class="select-wrapper">
-                            <select name="assigned_driver" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
+                            <select name="assigned_driver" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; appearance: none; background: white;">
                                 @foreach($vehicles->whereNotNull('driver')->unique('driver_id') as $vehicle)
                                     <option value="{{ $vehicle->driver->name ?? 'N/A' }}" {{ old('assigned_driver', $transport->assigned_driver ?? '') == ($vehicle->driver->name ?? '') ? 'selected' : '' }}>{{ $vehicle->driver->name ?? 'N/A' }}</option>
                                 @endforeach
@@ -762,13 +766,13 @@
                     </div>
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Assigned Driver ID</label>
-                        <input type="text" name="assigned_driver_id" value="{{ old('assigned_driver_id', $transport->assigned_driver_id ?? '') }}" placeholder="44" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                        <input type="text" name="assigned_driver_id" value="{{ old('assigned_driver_id', $transport->assigned_driver_id ?? '') }}" placeholder="44" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-top: 10px;">
                     <label style="font-size: 16px; font-weight: 500; color: #313131;">Handling / Permit Instructions</label>
-                    <input type="text" name="handling_instructions" value="{{ old('handling_instructions', $transport->handling_instructions) }}" placeholder="Enter handling instructions" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400;">
+                    <input type="text" name="handling_instructions" value="{{ old('handling_instructions', $transport->handling_instructions) }}" placeholder="Enter handling instructions" style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 400; background-color: #fafafa;">
                 </div>
             </div>
 
@@ -783,11 +787,11 @@
                 <div style="margin-top: 20px;">
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Third Party Name</label>
-                        <input type="text" name="third_party_name" value="{{ old('third_party_name') }}" placeholder="Notes.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                        <input type="text" name="third_party_name" value="{{ old('third_party_name') }}" placeholder="Notes.." style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #4C4C4C; background-color: #fafafa;">
                     </div>
                     <div class="form-group">
                         <label style="font-size: 16px; font-weight: 500; color: #313131;">Third Party Vehicle</label>
-                        <input type="text" name="third_party_vehicle" value="{{ old('third_party_vehicle') }}" placeholder="Notes.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
+                        <input type="text" name="third_party_vehicle" value="{{ old('third_party_vehicle') }}" placeholder="Notes.." style="height: 45px; border: 1px solid #b0b0b0; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #4C4C4C; background-color: #fafafa;">
                     </div>
                 </div>
             </div>
@@ -797,10 +801,10 @@
         <div class="map-vehicle-container">
             <!-- Map Section -->
             <div class="map-container">
-                <img src="https://api.mapbox.com/styles/v1/mapbox/light-v10/static/pin-s+FF0000(51.2,25.3),pin-s+33C17F(55.3,25.3),path-5+E31E24-0.8(51.2,25.3,52.5,25.8,53.8,25.5,55.3,25.3)/53.25,25.3,5,0/505x457@2x?access_token=pk.eyJ1IjoidGVzdHVzZXIiLCJhIjoiY2x0ZXN0MTIzIn0.test" alt="Route Map" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22505%22 height=%22457%22%3E%3Crect fill=%22%23E5EAF2%22 width=%22505%22 height=%22457%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22%236C6C6C%22 text-anchor=%22middle%22 dy=%22.3em%22%3ERoute Map%3C/text%3E%3C/svg%3E'">
+                <div id="map"></div>
                 <div class="distance-badge">
                     <p>Total Distance</p>
-                    <p class="distance-value">908 kms</p>
+                    <p class="distance-value" id="total-distance">Loading...</p>
                 </div>
             </div>
 
@@ -809,9 +813,18 @@
                 <div class="available-vehicles-header">
                     <h3>Available Vehicles</h3>
                 </div>
-                <div class="vehicle-list">
+                <div class="vehicle-list" id="vehicle-list">
                     @foreach($vehicles as $vehicle)
-                    <div class="vehicle-card" data-vehicle-type="{{ $vehicle->vehicle_type }}" data-vehicle-number="{{ $vehicle->vehicle_number }}" data-driver-name="{{ $vehicle->driver->name ?? '' }}" data-driver-id="{{ $vehicle->driver->id ?? '' }}">
+                    @php
+                        $isFtlAssigned = \App\Models\Transport::where('trip_type', 'FTL')->where('assigned_vehicle_no', $vehicle->vehicle_number)->exists();
+                    @endphp
+                    <div class="vehicle-card {{ $vehicle->assigned_to_ltl ? 'yellow' : '' }}" 
+                         data-vehicle-type="{{ $vehicle->vehicle_type }}" 
+                         data-vehicle-number="{{ $vehicle->vehicle_number }}" 
+                         data-driver-name="{{ $vehicle->driver->name ?? '' }}" 
+                         data-driver-id="{{ $vehicle->driver->id ?? '' }}"
+                         data-is-ftl-assigned="{{ $isFtlAssigned ? 'true' : 'false' }}"
+                         data-is-ltl-assigned="{{ $vehicle->assigned_to_ltl ? 'true' : 'false' }}">
                         <div class="vehicle-image-container">
                             @if($vehicle->image_path)
                                 <img src="{{ asset($vehicle->image_path) }}" alt="{{ $vehicle->model }}" class="vehicle-image" onerror="this.src='{{ asset('images/Truck delivery service.png') }}'">
@@ -828,7 +841,16 @@
                             </div>
                             <div class="vehicle-location">
                                 <p style="font-weight: 400;">{{ $vehicle->vehicle_number }}</p>
-                                <p style="font-weight: 400;">Status: {{ $vehicle->status }}</p>
+                                <p style="font-weight: 400;">
+                                    Status: 
+                                    @if($isFtlAssigned)
+                                        <span style="color: #e31e24; font-weight: 600;">Assigned to FTL</span>
+                                    @elseif($vehicle->assigned_to_ltl)
+                                        <span style="color: #F4CE5B; font-weight: 600;">Assigned to LTL</span>
+                                    @else
+                                        {{ $vehicle->status }}
+                                    @endif
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -842,60 +864,202 @@
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>
- </div>
- </div>
+  </div>
+  </div>
 
- <script>
- document.addEventListener('DOMContentLoaded', function() {
-     // Get all vehicle cards
-     const vehicleCards = document.querySelectorAll('.vehicle-card');
-     const vehicleTypeSelect = document.querySelector('select[name="vehicle_type"]');
-     const assignedVehicleNoSelect = document.querySelector('select[name="assigned_vehicle_no"]');
-     const assignedDriverSelect = document.querySelector('select[name="assigned_driver"]');
-     const assignedDriverIdInput = document.querySelector('input[name="assigned_driver_id"]');
+  <script>
+  // Google Maps API Key from environment
+  const GOOGLE_MAPS_API_KEY_FREIGHT = '{{ env('GOOGLE_MAPS_API_KEY') }}';
+  
+  // Get pickup and delivery locations from transport data
+  const pickupLocation = '{{ $transport->pickup_location ?? "Dubai, UAE" }}';
+  const deliveryLocation = '{{ $transport->delivery_location ?? "Abu Dhabi, UAE" }}';
+  
+  // Load Google Maps API
+  function loadGoogleMaps() {
+      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY_FREIGHT}&libraries=places`;
+          script.async = true;
+          script.defer = true;
+          script.onload = initMap;
+          document.head.appendChild(script);
+      } else {
+          initMap();
+      }
+  }
+  
+  function initMap() {
+      const mapOptions = {
+          zoom: 6,
+          center: { lat: 24.5, lng: 51.5 }, // Qatar/Saudi/UAE region center
+          mapTypeId: 'roadmap'
+      };
+      
+      const map = new google.maps.Map(document.getElementById('map'), mapOptions);
+      
+      const directionsService = new google.maps.DirectionsService();
+      const directionsRenderer = new google.maps.DirectionsRenderer({
+          map: map,
+          suppressMarkers: false,
+          polylineOptions: {
+              strokeColor: '#E31E24',
+              strokeWeight: 4,
+              strokeOpacity: 0.8
+          }
+      });
+      
+      const request = {
+          origin: pickupLocation,
+          destination: deliveryLocation,
+          travelMode: 'DRIVING'
+      };
+      
+      directionsService.route(request, function(response, status) {
+          if (status === 'OK') {
+              directionsRenderer.setDirections(response);
+              
+              // Update distance badge
+              const route = response.routes[0];
+              const legs = route.legs[0];
+              const distanceText = legs.distance.text;
+              const durationText = legs.duration.text;
+              document.getElementById('total-distance').textContent = distanceText;
+              
+              // Update hidden fields
+              const distanceInput = document.getElementById('total_distance_value');
+              const travelTimeInput = document.getElementById('total_travel_time_value');
+              
+              // Extract numeric value from distance text (e.g., "150 km" -> 150)
+              const distanceValue = parseFloat(distanceText.replace(/[^0-9.]/g, ''));
+              if (!isNaN(distanceValue)) {
+                  distanceInput.value = distanceValue;
+              }
+              travelTimeInput.value = durationText;
+          } else {
+              console.error('Directions request failed due to ' + status);
+              // Fallback: show markers without route
+              const geocoder = new google.maps.Geocoder();
+              
+              geocoder.geocode({ address: pickupLocation }, function(results, status) {
+                  if (status === 'OK') {
+                      new google.maps.Marker({
+                          position: results[0].geometry.location,
+                          map: map,
+                          title: 'Pickup Location',
+                          icon: {
+                              url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                          }
+                      });
+                  }
+              });
+              
+              geocoder.geocode({ address: deliveryLocation }, function(results, status) {
+                  if (status === 'OK') {
+                      new google.maps.Marker({
+                          position: results[0].geometry.location,
+                          map: map,
+                          title: 'Delivery Location',
+                          icon: {
+                              url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                          }
+                      });
+                  }
+              });
+          }
+      });
+  }
+  
+  // Initialize map on page load
+  document.addEventListener('DOMContentLoaded', function() {
+      loadGoogleMaps();
+      
+      // Get all vehicle cards
+      const vehicleCards = document.querySelectorAll('.vehicle-card');
+      const vehicleTypeSelect = document.querySelector('select[name="vehicle_type"]');
+      const tripTypeSelect = document.querySelector('select[name="trip_type"]');
+      const assignedVehicleNoSelect = document.querySelector('select[name="assigned_vehicle_no"]');
+      const assignedDriverSelect = document.querySelector('select[name="assigned_driver"]');
+      const assignedDriverIdInput = document.querySelector('input[name="assigned_driver_id"]');
 
-     // Add click event to each vehicle card
-     vehicleCards.forEach(card => {
-         card.addEventListener('click', function() {
-             // Remove selected class from all cards
-             vehicleCards.forEach(c => c.classList.remove('selected'));
-             // Add selected class to clicked card
-             this.classList.add('selected');
+      // Add click event to each vehicle card
+      vehicleCards.forEach(card => {
+          card.addEventListener('click', function() {
+              // Remove selected class from all cards
+              vehicleCards.forEach(c => c.classList.remove('selected'));
+              // Add selected class to clicked card
+              this.classList.add('selected');
 
-             // Get vehicle data from data attributes
-             const vehicleType = this.getAttribute('data-vehicle-type');
-             const vehicleNumber = this.getAttribute('data-vehicle-number');
-             const driverName = this.getAttribute('data-driver-name');
-             const driverId = this.getAttribute('data-driver-id');
+              // Get vehicle data from data attributes
+              const vehicleType = this.getAttribute('data-vehicle-type');
+              const vehicleNumber = this.getAttribute('data-vehicle-number');
+              const driverName = this.getAttribute('data-driver-name');
+              const driverId = this.getAttribute('data-driver-id');
 
-             // Set values in form fields
-             if (vehicleTypeSelect) {
-                 vehicleTypeSelect.value = vehicleType;
-             }
-             if (assignedVehicleNoSelect) {
-                 assignedVehicleNoSelect.value = vehicleNumber;
-             }
-             if (assignedDriverSelect) {
-                 assignedDriverSelect.value = driverName || '';
-             }
-             if (assignedDriverIdInput) {
-                 assignedDriverIdInput.value = driverId || '';
-             }
-         });
-     });
+              // Set values in form fields
+              if (vehicleTypeSelect) {
+                  vehicleTypeSelect.value = vehicleType;
+              }
+              if (assignedVehicleNoSelect) {
+                  assignedVehicleNoSelect.value = vehicleNumber;
+              }
+              if (assignedDriverSelect) {
+                  assignedDriverSelect.value = driverName || '';
+              }
+              if (assignedDriverIdInput) {
+                  assignedDriverIdInput.value = driverId || '';
+              }
+          });
+      });
 
-     // Also handle select change events to highlight matching card
-     if (assignedVehicleNoSelect) {
-         assignedVehicleNoSelect.addEventListener('change', function() {
-             const selectedVehicleNo = this.value;
-             vehicleCards.forEach(card => {
-                 if (card.getAttribute('data-vehicle-number') === selectedVehicleNo) {
-                     vehicleCards.forEach(c => c.classList.remove('selected'));
-                     card.classList.add('selected');
-                 }
-             });
-         });
-     }
- });
- </script>
- @endsection
+      // Filter vehicles based on trip type
+      function filterVehiclesByTripType() {
+          const tripType = tripTypeSelect ? tripTypeSelect.value : 'LTL';
+          
+          vehicleCards.forEach(card => {
+              const isFtlAssigned = card.getAttribute('data-is-ftl-assigned') === 'true';
+              const isLtlAssigned = card.getAttribute('data-is-ltl-assigned') === 'true';
+              
+              if (tripType === 'FTL') {
+                  // FTL: Only show available vehicles (not assigned to FTL or LTL)
+                  if (isFtlAssigned || isLtlAssigned) {
+                      card.style.display = 'none';
+                  } else {
+                      card.style.display = 'flex';
+                  }
+              } else {
+                  // LTL: Show available + LTL-assigned vehicles
+                  if (isFtlAssigned) {
+                      card.style.display = 'none';
+                  } else {
+                      card.style.display = 'flex';
+                  }
+              }
+          });
+      }
+
+      // Initialize filter on page load
+      if (tripTypeSelect) {
+          filterVehiclesByTripType();
+          
+          // Re-filter when trip type changes
+          tripTypeSelect.addEventListener('change', function() {
+              filterVehiclesByTripType();
+          });
+      }
+
+      // Also handle select change events to highlight matching card
+      if (assignedVehicleNoSelect) {
+          assignedVehicleNoSelect.addEventListener('change', function() {
+              const selectedVehicleNo = this.value;
+              vehicleCards.forEach(card => {
+                  if (card.getAttribute('data-vehicle-number') === selectedVehicleNo) {
+                      vehicleCards.forEach(c => c.classList.remove('selected'));
+                      card.classList.add('selected');
+                  }
+              });
+          });
+      }
+  });
+  </script>
+  @endsection

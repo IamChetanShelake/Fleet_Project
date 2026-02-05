@@ -302,7 +302,8 @@
             </div>
 
             <div class="action-buttons">
-                <a href="{{ route('franchises.edit', $franchise->id) }}" class="btn-action btn-edit">
+                <!-- Edit and Delete buttons disabled - only View button available -->
+                {{-- <a href="{{ route('franchises.edit', $franchise->id) }}" class="btn-action btn-edit">
                     <i class="fas fa-edit"></i> Edit Region
                 </a>
                 <form action="{{ route('franchises.destroy', $franchise->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this franchise?')">
@@ -311,7 +312,7 @@
                     <button type="submit" class="btn-action btn-delete">
                         <i class="fas fa-trash"></i> Delete Region
                     </button>
-                </form>
+                </form> --}}
                 <a href="{{ route('franchises.login', $franchise->id) }}" class="btn-action btn-login">
                     <i class="fas fa-sign-in-alt"></i> Go to Login
                 </a>
