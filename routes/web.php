@@ -412,4 +412,4 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     })->name('logout');
 });
 
-Auth::routes(['register' => false]);
+// Auth::routes(['register' => false]);

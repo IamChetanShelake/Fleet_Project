@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QWIKHOM CMS - Website Content Management System</title>
+    <title>Peak Logistics - Website Content Management System</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -14,7 +15,7 @@
             --secondary-color: #353535;
             --dark-color: #000000;
             --light-bg: #e4f9ff;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --border-radius: 15px;
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 70px;
@@ -37,7 +38,7 @@
             color: white;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
             overflow: hidden;
         }
 
@@ -82,7 +83,7 @@
 
         .sidebar-header {
             padding: 2rem 1rem 1rem 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -170,7 +171,7 @@
             left: 0;
             right: 0;
             padding: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-toggle-btn {
@@ -217,7 +218,7 @@
         }
 
         .nav-link {
-            color: rgba(255,255,255,0.8) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
             font-weight: 500;
             padding: 0.75rem 1.5rem;
             margin: 0.25rem 0.5rem;
@@ -269,7 +270,7 @@
             color: white !important;
             font-weight: 600;
             box-shadow: 0 4px 20px rgba(0, 66, 113, 0.4);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .nav-link.active::before {
@@ -325,7 +326,7 @@
 
         .section-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
 
         .card-header {
@@ -377,7 +378,7 @@
         .table {
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
 
         .table thead th {
@@ -396,14 +397,16 @@
             background-color: rgba(0, 66, 113, 0.05);
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 2px solid #e9ecef;
             border-radius: 10px;
             padding: 0.75rem;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.2rem rgba(0, 66, 113, 0.25);
         }
@@ -478,6 +481,7 @@
 
         /* Mobile and Tablet Responsive Styles */
         @media (max-width: 992px) {
+
             /* Hide sidebar by default on mobile/tablet */
             .sidebar {
                 transform: translateX(-100%);
@@ -664,6 +668,7 @@
 
         /* iPad specific styles */
         @media (min-width: 768px) and (max-width: 992px) {
+
             .main-content,
             .dashboard-wrapper {
                 margin-left: 70px !important;
@@ -802,7 +807,7 @@
                             return;
                         }
                     }
-                    
+
                     // 2. CHECK CUSTOMER CONSIGNMENT
                     else if (currentPath.includes('/admin/customer-consignment')) {
                         if (linkPath.includes('customer-consignment')) {
@@ -810,7 +815,7 @@
                             return;
                         }
                     }
-                    
+
                     // 3. CHECK TRIP STATUS
                     else if (currentPath.includes('/admin/trip-status')) {
                         if (linkPath.includes('trip-status')) {
@@ -826,20 +831,21 @@
                             return;
                         }
                     }
-                    
+
                     // 4. CHECK GENERAL CONSIGNMENT
                     // This runs only if 'new-consignment' was NOT found
                     else if (currentPath.includes('/admin/consignment')) {
                         // Ensure we don't match 'new-consignment' or 'trip-status' here just in case
-                        if (linkPath.includes('consignment') && !linkPath.includes('new-consignment') && !linkPath.includes('trip-status')) {
+                        if (linkPath.includes('consignment') && !linkPath.includes('new-consignment') && !
+                            linkPath.includes('trip-status')) {
                             link.classList.add('active');
                             return;
                         }
                     }
-                    
+
                     // 5. GENERAL ROUTE MATCHING (For other pages)
-                    else if (currentPath === linkPath || 
-                             (linkPath && currentPath.endsWith('/' + linkPath.split('/').pop()))) {
+                    else if (currentPath === linkPath ||
+                        (linkPath && currentPath.endsWith('/' + linkPath.split('/').pop()))) {
                         link.classList.add('active');
                     }
                 }
@@ -847,27 +853,28 @@
         });
     </script>
 </head>
+
 <body>
     <header>
         <!-- Sidebar -->
         <div class="sidebar collapsed" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="{{ asset('images/thelogo.png') }}" alt="Peak Logistics Logo">
-                <div class="logo-text">Peak Logistics</div>
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="{{ asset('images/thelogo.png') }}" alt="Peak Logistics Logo">
+                    <div class="logo-text">Peak Logistics</div>
+                </div>
             </div>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="nav-highlight"></div>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ route('admin.dashboard') }}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span class="nav-text">Dashboard</span>
-                    </a>
-                </li>
+            <nav class="sidebar-nav">
+                <div class="nav-highlight"></div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ route('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
 
-                 <li class="nav-item">
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
                             <i class="fas fa-plus-circle"></i>
                             <span class="nav-text">New Consignment</span>
@@ -901,121 +908,121 @@
                             <span class="nav-text">Customers</span>
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.customer-consignment') }}">
                             <i class="fas fa-box"></i>
                             <span class="nav-text">Customer Consignment</span>
                         </a>
                     </li>
-                
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.team-members.index') }}">
-                        <i class="fas fa-users"></i>
-                        <span class="nav-text">Team Member</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.driving-team.index') }}">
-                        <i class="fas fa-user-tie"></i>
-                        <span class="nav-text">Driving Team</span>
-                    </a>
-                </li>
-                <!-- <li class="nav-item">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.team-members.index') }}">
+                            <i class="fas fa-users"></i>
+                            <span class="nav-text">Team Member</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.driving-team.index') }}">
+                            <i class="fas fa-user-tie"></i>
+                            <span class="nav-text">Driving Team</span>
+                        </a>
+                    </li>
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.billing-entities.index') }}">
                         <i class="fas fa-file-invoice-dollar"></i>
                         <span class="nav-text">Billing Entities</span>
                     </a>
                 </li> -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.vehicle-monitoring.index') }}">
-                        <i class="fas fa-truck"></i>
-                        <span class="nav-text">Fleet Management</span>
-                    </a>
-                </li>
-                <!-- <li class="nav-item">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.vehicle-monitoring.index') }}">
+                            <i class="fas fa-truck"></i>
+                            <span class="nav-text">Fleet Management</span>
+                        </a>
+                    </li>
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.peak-accounts.index') }}">
                         <i class="fas fa-user-shield"></i>
                         <span class="nav-text">Peak Accounts</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.tyre-maintenance.index') }}">
                         <i class="fas fa-circle-notch"></i>
                         <span class="nav-text">Tyre Maintenance</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.tyre-stock.index') }}">
                         <i class="fas fa-warehouse"></i>
                         <span class="nav-text">Tyre Stock</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.fleet-management.index') }}">
                         <i class="fas fa-bus"></i>
                         <span class="nav-text">Fleet Management</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.transport-management.index') }}">
                         <i class="fas fa-shipping-fast"></i>
                         <span class="nav-text">Transport Management</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.vehicle-maintenance.index') }}">
                         <i class="fas fa-tools"></i>
                         <span class="nav-text">Vehicle Maintenance</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.expense-tracking.index') }}">
                         <i class="fas fa-calculator"></i>
                         <span class="nav-text">Expense Tracking</span>
                     </a>
                 </li> -->
-               
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.geography.index') }}">
-                        <i class="fas fa-map-marked-alt"></i>
-                        <span class="nav-text">Geography</span>
-                    </a>
-                </li>
-                <!-- <li class="nav-item">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.geography.index') }}">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <span class="nav-text">Geography</span>
+                        </a>
+                    </li>
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.performance-reports.index') }}">
                         <i class="fas fa-chart-bar"></i>
                         <span class="nav-text">Performance Reports</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.admin-panel.index') }}">
                         <i class="fas fa-cog"></i>
                         <span class="nav-text">Admin Panel</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.utilities-tools.index') }}">
                         <i class="fas fa-wrench"></i>
                         <span class="nav-text">Utilities & Tools</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.help-center.index') }}">
                         <i class="fas fa-question-circle"></i>
                         <span class="nav-text">Help Center</span>
                     </a>
                 </li> -->
-                <!-- <li class="nav-item">
+                    <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.my-assistance.index') }}">
                         <i class="fas fa-headset"></i>
                         <span class="nav-text">My Assistance</span>
                     </a>
                 </li> -->
-               
-                <li class="nav-item" style="padding-bottom: 70px;">
-                    <a class="nav-link" href="{{ route('logout') }}"
-                       onclick="event.preventDefault();
+
+                    <li class="nav-item" style="padding-bottom: 70px;">
+                        <a class="nav-link" href="{{ route('logout') }}"
+                            onclick="event.preventDefault();
                                if(confirm('Are you sure you want to logout?')) {
                                    var form = document.createElement('form');
                                    form.method = 'POST';
@@ -1036,17 +1043,17 @@
                                    document.body.appendChild(form);
                                    form.submit();
                                }">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span class="nav-text">Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="sidebar-footer">
-            <button class="sidebar-toggle-btn" id="sidebarToggle">
-                <i class="fas fa-chevron-right"></i>
-                <span class="toggle-text">Expand</span>
-            </button>
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="nav-text">Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-toggle-btn" id="sidebarToggle">
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="toggle-text">Expand</span>
+                </button>
+            </div>
         </div>
-    </div>
     </header>
