@@ -24,7 +24,7 @@ Route::prefix('customer')->group(function () {
 
 
 Route::middleware('auth:customer')->prefix('customer')->group(function () {
-         
+         Route::post('/storeConsignment', [ConsignmentApiController::class, 'store']);
 });
 
 // driver apis
