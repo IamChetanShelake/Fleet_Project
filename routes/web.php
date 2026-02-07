@@ -30,6 +30,7 @@ use App\Http\Controllers\PodController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerConsignmentController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\cargoController;
 use Illuminate\Support\Facades\Auth;
 
 // Franchise Selection Routes (Before Login)
@@ -62,6 +63,15 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'destroy' => 'admin.team-members.destroy'
     ]);
 
+    Route::resource('cargoTypes', cargoController::class)->names([
+        'index' => 'admin.cargoTypes.index',
+        'create' => 'admin.cargoTypes.create',
+        'store' => 'admin.cargoTypes.store',
+        'show' => 'admin.cargoTypes.show',
+        'edit' => 'admin.cargoTypes.edit',
+        'update' => 'admin.cargoTypes.update',
+        'destroy' => 'admin.cargoTypes.destroy'
+    ]);
     // Team Member Status Toggle
     Route::post('team-members/{id}/toggle-status', [TeamMemberController::class, 'toggleStatus'])->name('admin.team-members.toggle-status');
 

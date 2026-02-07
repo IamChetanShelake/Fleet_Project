@@ -940,6 +940,12 @@
                             <span class="nav-text">Fleet Management</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.cargoTypes.index') }}">
+                            <i class="fas fa-truck"></i>
+                            <span class="nav-text">Cargo Types</span>
+                        </a>
+                    </li>
                     <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.peak-accounts.index') }}">
                         <i class="fas fa-user-shield"></i>
