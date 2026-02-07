@@ -19,7 +19,7 @@ class AuthApiController extends Controller
             'mobile' => 'nullable|array',
             'mobile.*' => 'string',
             'email' => 'required|email|unique:customers',
-            'password' => 'required|string',
+            'password' => 'required|string|min:6',
             'billingName' => 'nullable|string',
             'billingAddress' => 'nullable|string',
         ]);
@@ -39,8 +39,8 @@ class AuthApiController extends Controller
         $cust->name = $credentials['name'] ?? null;
         $cust->email = $credentials['email'];
         $cust->password = bcrypt($credentials['password']);
-        $cust->mobile_no = json_encode($credentials['mobile']) ?? null;
-        $cust->address = json_encode($credentials['address']) ?? null;
+        $cust->mobile_no = isset($credentials['mobile']) ? json_encode($credentials['mobile']) : null;
+        $cust->address = isset($credentials['address']) ? json_encode($credentials['address']) : null;
         $cust->billing_name = $credentials['billingName'] ?? null;
         $cust->billing_address = $credentials['billingAddress'] ?? null;
         $cust->save();
@@ -57,9 +57,9 @@ class AuthApiController extends Controller
     {
         // Validate the request
         $validator = Validator::make($request->all(),[
-            'email' => 'nullable|email',
+            'email' => 'nullable|email|required_without:mobile',
+            'mobile' => 'nullable|numeric|required_without:email',
             'password' => 'nullable|string',
-            'mobile' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -73,6 +73,12 @@ class AuthApiController extends Controller
         $credentials = $validator->validated();
         
         $customer = Customer::where('email',$credentials['email'] ?? null)->orWhere('mobile_no',$credentials['mobile'] ?? null)->first();
+            if(!$customer){
+                return response()->json([
+                    'status'=>false,
+                    'message'=>'Customer not found',
+                ],404);
+            }
 
         if(!\Hash::check($credentials['password'], $customer->password ?? null)){
             return response()->json([
@@ -82,7 +88,8 @@ class AuthApiController extends Controller
         }
 
         // Generate a token for the authenticated user
-        $token = $customer->createToken('auth_token')->plainTextToken;
+        $token = $customer->createToken('customer_token')->plainTextToken;
+
 
         // Return the token in the response
         return response()->json([
@@ -95,29 +102,18 @@ class AuthApiController extends Controller
     }
 
     public function logout(Request $request)
-    {
-        $validated = Validator::make($request->all(),[
-            'customerId' => 'required|exists:customers,id',
-        ])->validate();
+{
+    $user = $request->user(); // Customer
 
-        if($validated){
-            $customer = Customer::find($validated['customerId']);
-            if(!$customer){
-                return response()->json([
-                    'status'=>false,
-                    'message' => 'Customer not found',
-                ],404);
-            }
-        }
-        // Revoke the token that was used to authenticate the current request
-        if($customer->currentAccessToken()){
-        $customer->currentAccessToken()->delete();
-        }
-
-        return response()->json([
-            'status'=>true,
-            'message' => 'Logged out successfully',
-        ],200);
+    if ($user->currentAccessToken()) {
+        $user->currentAccessToken()->delete();
     }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Logged out successfully',
+    ], 200);
+}
+
    
 }
