@@ -9,12 +9,12 @@
                 <div class="col-12">
                     <div class="section-card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3 class="mb-0">Admin Setting Details</h3>
+                            <h3 class="mb-0">Cargo type Details</h3>
                             <div>
-                                <a href="{{ route('admin.admin-panel.edit', 1) }}" class="btn btn-warning">
+                                <a href="{{ route('admin.cargoTypes.edit', 1) }}" class="btn btn-warning">
                                     <i class="fas fa-edit mr-2"></i> Edit
                                 </a>
-                                <a href="{{ route('admin.admin-panel.index') }}" class="btn btn-outline-custom">
+                                <a href="{{ route('admin.cargoTypes.index') }}" class="btn btn-outline-custom">
                                     <i class="fas fa-arrow-left mr-2"></i> Back to List
                                 </a>
                             </div>

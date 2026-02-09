@@ -9,69 +9,19 @@
                 <div class="col-12">
                     <div class="section-card">
                         <div class="card-header">
-                            <h3 class="mb-0">Edit Admin Setting</h3>
+                            <h3 class="mb-0">Edit Cargo Type</h3>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('admin.admin-panel.update', 1) }}" method="POST">
+                            <form action="{{ route('admin.cargoTypes.update', $cargotype->id) }}" method="POST"
+                                enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
-                                            <label for="setting_name">Setting Name</label>
-                                            <input type="text" class="form-control" id="setting_name" name="setting_name"
-                                                value="System Notifications" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="category">Category</label>
-                                            <select class="form-control" id="category" name="category" required>
-                                                <option value="System" selected>System</option>
-                                                <option value="Security">Security</option>
-                                                <option value="Notifications">Notifications</option>
-                                                <option value="User Management">User Management</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="setting_key">Setting Key</label>
-                                            <input type="text" class="form-control" id="setting_key" name="setting_key"
-                                                value="system_notifications" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="setting_value">Setting Value</label>
-                                            <input type="text" class="form-control" id="setting_value"
-                                                name="setting_value" value="Enabled" required>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="data_type">Data Type</label>
-                                            <select class="form-control" id="data_type" name="data_type" required>
-                                                <option value="String" selected>String</option>
-                                                <option value="Boolean">Boolean</option>
-                                                <option value="Number">Number</option>
-                                                <option value="Array">Array</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="status">Status</label>
-                                            <select class="form-control" id="status" name="status" required>
-                                                <option value="Active" selected>Active</option>
-                                                <option value="Inactive">Inactive</option>
-                                            </select>
+                                            <label for="cargo_name">Cargo Name</label>
+                                            <input type="text" class="form-control" id="cargo_name" name="cargo_name"
+                                                value="{{ $cargotype->title }}" required>
                                         </div>
                                     </div>
                                 </div>
@@ -80,27 +30,26 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="description">Description</label>
-                                            <textarea class="form-control" id="description" name="description" rows="3">Controls whether system-wide notifications are enabled or disabled</textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row mt-3">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="default_value">Default Value</label>
-                                            <input type="text" class="form-control" id="default_value"
-                                                name="default_value" value="Enabled">
+                                            <textarea class="form-control" id="description" name="description" rows="3">{{ $cargotype->description }}</textarea>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row mt-4">
                                     <div class="col-md-12">
+                                        <input type="file" name="image" id="image" class="form-control-file">
+                                    </div>
+                                    <div class="col">
+                                        <img src="{{ asset($cargotype->image) }}" alt="{{ $cargotype->title }}"
+                                            width="100" class="mt-2">
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
                                         <button type="submit" class="btn btn-custom">
-                                            <i class="fas fa-save mr-2"></i> Update Admin Setting
+                                            <i class="fas fa-save mr-2"></i> update Cargo Type
                                         </button>
-                                        <a href="{{ route('admin.admin-panel.index') }}" class="btn btn-outline-custom">
+                                        <a href="{{ route('admin.cargoTypes.index') }}" class="btn btn-outline-custom">
                                             <i class="fas fa-arrow-left mr-2"></i> Back to List
                                         </a>
                                     </div>

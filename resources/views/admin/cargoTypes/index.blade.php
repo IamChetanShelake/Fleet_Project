@@ -34,8 +34,8 @@
                                                 <td>{{ $cargoType->id }}</td>
                                                 <td>{{ $cargoType->title }}</td>
                                                 <td>{{ $cargoType->description }}</td>
-                                                <td><img src="{{ asset('cargo_images/' . $cargoType->image) }}"
-                                                        alt="{{ $cargoType->title }}" width="50"></td>
+                                                <td><img src="{{ asset($cargoType->image) }}" alt="{{ $cargoType->title }}"
+                                                        width="50"></td>
                                                 <td>{{ $cargoType->created_at->format('Y-m-d') }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.cargoTypes.edit', $cargoType->id) }}"

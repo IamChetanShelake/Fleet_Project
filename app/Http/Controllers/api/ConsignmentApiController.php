@@ -24,6 +24,50 @@ class consignmentApiController extends Controller
     {
         //
     }
+        
+    public function orderSummary(Request $request)
+    {
+        if(!$request->user()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: please login',
+            ], 401);
+         }
+
+          $validator = Validator::make($request->all(), [
+            'consignmentId' => 'required|exists:transports,id',
+        ]);
+        
+        $validatedData = $validator->validated();
+
+       $consignment = Transport::where('customer_id', $request->user()->id)->Where('id', $validatedData['consignmentId'])->first();
+
+        if(!$consignment){
+            return response()->json([
+                'success' => false,
+                'message' => 'No consignment order found for this user',
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Order Summary fetched',
+            'data' =>  [
+                    'consignmentId' => $consignment->id,
+                    'consigner' => $consignment->consigner ?? null,
+                    'pickupDate&Time' => $consignment->pickup_datetime?->format('Y-m-d H:i'),
+                    'pickup_location' => $consignment->pickup_location ?? null,
+                    'delivery_location' => $consignment->delivery_location ?? null,
+                    'delivery_date' => $consignment->delivery_date?->format('Y-m-d'),
+                    'weight' => $consignment->weight ?? null,
+                    'weight_unit' => $consignment->weight_unit ?? null,
+                    'totalDistance' => $consignment->total_distance ?? null,
+                    'totalTravelTime' => $consignment->total_travel_time?->format('H:i'),
+                    'instructions' => $consignment->instructions ?? null,
+                    'finalNotes' => $consignment->final_notes ?? null,
+                ],
+        ], 200);
+    }
+        
 
     /**
      * Store a newly created resource in storage.
@@ -31,11 +75,102 @@ class consignmentApiController extends Controller
      public function store(Request $request)
     {
 
-       $validator = Validator::make($request->all(), [
-    'pickupLocation' => 'required|string',
-    'pickupDate' => 'required|date_format:Y-m-d',
-    'pickupTime' => 'required|date_format:H:i',
+      $validator = Validator::make($request->all(), [
+            'type' => 'required|string|in:local,international',
+            'tripType' => 'required|string|in:LTL,FTL',
+            'pickupLocation' => 'required|string',
+            'pickupDate' => 'required|date_format:Y-m-d',
+            'pickupTime' => 'required|date_format:H:i',
+    
+            'receiver_name' => 'nullable|string|max:255',
+            'receiver_mobile' => 'nullable|string|max:20',
+            'delivery_location' => 'nullable|string|max:255',
+    
+            'cargoType' => 'nullable|integer',
+            'total_packages' => 'nullable|integer|min:0',
+            'weight_unit' => 'nullable|string|max:50',
+            'weight' => 'nullable|numeric|min:0',
+            'fragile' => 'boolean',
+            'perishable' => 'boolean',
+            /* ---------------- Dimensions & Weight ---------------- */
+            'width' => 'nullable|numeric|min:0',
+            'height' => 'nullable|numeric|min:0',
+            'length' => 'nullable|numeric|min:0',
+            'Instructions' => 'nullable|string',
+            /* ---------------- Documents ---------------- */
+            'invoice'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', //max 5 MB
+            'packageSlip'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'deliveryChallan'  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'CargoDocs'        => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            
+            'remarks' => 'nullable|string',
+    
+            //these will come later
+            /* ---------------- Consigner & Pickup ---------------- */
+            'source_building_no' => 'nullable|string|max:255',
+            'source_pincode' => 'nullable|string|max:20',
+            'source_city' => 'nullable|string|max:255',
+            'source_state' => 'nullable|string|max:255',
+            'source_country' => 'nullable|string|max:255',
+            'source_maps_link' => 'nullable|url',
+            /* ---------------- Delivery ---------------- */
+            
+            'address_line' => 'nullable|string',
+            'building_no' => 'nullable|string|max:255',
+            'dest_building_no' => 'nullable|string|max:255',
+            'dest_pincode' => 'nullable|string|max:20',
+            'dest_state' => 'nullable|string|max:255',
+            'dest_country' => 'nullable|string|max:255',
+            'dest_maps_link' => 'nullable|url',
+    
+            /* ---------------- Dates ---------------- */
+            'delivery_date' => 'nullable|date',
+            /* ---------------- Package ---------------- */
+            'packages' => 'nullable|integer|min:0',
+            /* ---------------- Instructions & Notes ---------------- */
+            'handling_instructions' => 'nullable|string',
+            'final_notes' => 'nullable|string',
+            /* ---------------- Invoice ---------------- */
+            'invoice_no' => 'nullable|string|max:255',
+            'invoice_value' => 'nullable|numeric|min:0',
+            /* ---------------- Trip / Vehicle ---------------- */
+            'vehicle_type' => 'nullable|string|max:255',
+            'assigned_vehicle_no' => 'nullable|string|max:255',
+            'assigned_driver' => 'nullable|string|max:255',
+            'assigned_driver_id' => 'nullable|string|max:255',
+    
+            /* ---------------- Third Party ---------------- */
+            'third_party_name' => 'nullable|string|max:255',
+            'third_party_vehicle' => 'nullable|string|max:255',
+    
+            /* ---------------- Freight & Cost ---------------- */
+            'freight_weight' => 'nullable|numeric|min:0',
+            'rate_per_unit' => 'nullable|numeric|min:0',
+            'rate_per_package' => 'nullable|numeric|min:0',
+            'fixed_cost' => 'nullable|numeric|min:0',
+            'total_cost' => 'nullable|numeric|min:0',
+    
+            /* ---------------- Expense Arrays ---------------- */
+            'expense_types' => 'nullable|array',
+            'expense_types.*' => 'string|max:255',
+    
+            'expense_amounts' => 'nullable|array',
+            'expense_amounts.*' => 'numeric|min:0',
+    
+            'expense_remarks' => 'nullable|array',
+            'expense_remarks.*' => 'string|max:255',
+    
+            /* ---------------- Status ---------------- */
+            'status' => 'nullable|in:pending,draft,assigned,confirmed,completed,cancelled',
+    
+            /* ---------------- Distance & Time ---------------- */
+            'total_distance' => 'nullable|numeric|min:0',
+            'total_travel_time' => 'nullable|string|max:255',
+    
+            /* ---------------- Party ---------------- */
+            'party_lr_no' => 'nullable|string|max:255',
 ]);
+
 
 if ($validator->fails()) {
     return response()->json([
@@ -45,7 +180,7 @@ if ($validator->fails()) {
     ], 422);
 }
 
-$ValidatedData = $validator->validated();
+        $ValidatedData = $validator->validated();
 
 
         // $CreateConsignment = Transport::create($ValidatedData);
@@ -57,17 +192,96 @@ $ValidatedData = $validator->validated();
         }
         
         $consignment = new Transport();
+        // $consignment->fill($ValidatedData);
+
+        //image handling
+            
         $consignment->customer_id = $request->user()->id;
+        $consignment->type = $ValidatedData['type'];
         $consignment->pickup_location = $ValidatedData['pickupLocation'];
         $consignment->consignment_type = "customer";
         $consignment->pickup_datetime = $ValidatedData['pickupDate'] . ' ' . $ValidatedData['pickupTime'];
-        $consignment->save();
+        /* ---------------- Receiver ---------------- */
+        $consignment->receiver_name = $ValidatedData['receiver_name'] ?? null;
+        $consignment->receiver_mobile = $ValidatedData['receiver_mobile'] ?? null;
+        $consignment->delivery_location = $ValidatedData['delivery_location'] ?? null;
+        /* ---------------- Cargo ---------------- */
+        $consignment->cargoType = $ValidatedData['cargoType'] ?? null;
+        $consignment->total_packages = $ValidatedData['total_packages'] ?? null;
+        $consignment->weight_unit = $ValidatedData['weight_unit'] ?? null;
+        $consignment->weight = $ValidatedData['weight'] ?? null;
+        $consignment->fragile = $ValidatedData['fragile'] ?? false;
+        $consignment->perishable = $ValidatedData['perishable'] ?? false;
+        /* ---------------- Dimensions ---------------- */
+        $consignment->width = $ValidatedData['width'] ?? null;
+        $consignment->height = $ValidatedData['height'] ?? null;
+        $consignment->length = $ValidatedData['length'] ?? null;
+        $consignment->Instructions = $ValidatedData['Instructions'] ?? null;
+        /* ---------------- Instructions ---------------- */
+        // $consignment->final_notes = $ValidatedData['final_notes'] ?? null;
+        /* ---------------- Source ---------------- */
+        $consignment->source_building_no = $ValidatedData['source_building_no'] ?? null;
+        $consignment->source_pincode = $ValidatedData['source_pincode'] ?? null;
+        $consignment->source_city = $ValidatedData['source_city'] ?? null;
+        $consignment->source_state = $ValidatedData['source_state'] ?? null;
+        $consignment->source_country = $ValidatedData['source_country'] ?? null;
+        $consignment->source_maps_link = $ValidatedData['source_maps_link'] ?? null;
+        /* ---------------- Destination ---------------- */
+        $consignment->address_line = $ValidatedData['address_line'] ?? null;
+        $consignment->building_no = $ValidatedData['building_no'] ?? null;
+        $consignment->dest_building_no = $ValidatedData['dest_building_no'] ?? null;
+        $consignment->dest_pincode = $ValidatedData['dest_pincode'] ?? null;
+        $consignment->dest_state = $ValidatedData['dest_state'] ?? null;
+        $consignment->dest_country = $ValidatedData['dest_country'] ?? null;
+        $consignment->dest_maps_link = $ValidatedData['dest_maps_link'] ?? null;
+        /* ---------------- Dates ---------------- */
+        $consignment->delivery_date = $ValidatedData['delivery_date'] ?? null;
+        /* ---------------- Package ---------------- */
+        $consignment->packages = $ValidatedData['packages'] ?? null;
+        $consignment->final_notes = $ValidatedData['final_notes'] ?? null;
+        /* ---------------- Invoice ---------------- */
+        $consignment->invoice_no = $ValidatedData['invoice_no'] ?? null;
+        $consignment->invoice_value = $ValidatedData['invoice_value'] ?? null;
+        /* ---------------- Trip / Vehicle ---------------- */
+        $consignment->trip_type = $ValidatedData['tripType'] ?? null;
+        $consignment->vehicle_type = $ValidatedData['vehicle_type'] ?? null;
+        $consignment->assigned_vehicle_no = $ValidatedData['assigned_vehicle_no'] ?? null;
+        $consignment->assigned_driver = $ValidatedData['assigned_driver'] ?? null;
+        $consignment->assigned_driver_id = $ValidatedData['assigned_driver_id'] ?? null;
+        /* ---------------- Third Party ---------------- */
+        $consignment->third_party_name = $ValidatedData['third_party_name'] ?? null;
+        $consignment->third_party_vehicle = $ValidatedData['third_party_vehicle'] ?? null;
+        /* ---------------- Freight & Cost ---------------- */
+        $consignment->freight_weight = $ValidatedData['freight_weight'] ?? null;
+        $consignment->rate_per_unit = $ValidatedData['rate_per_unit'] ?? null;
+        $consignment->rate_per_package = $ValidatedData['rate_per_package'] ?? null;
+        $consignment->fixed_cost = $ValidatedData['fixed_cost'] ?? null;
+        $consignment->total_cost = $ValidatedData['total_cost'] ?? null;
+        /* ---------------- Distance & Time ---------------- */
+        $consignment->total_distance = $ValidatedData['total_distance'] ?? null;
+        $consignment->total_travel_time = $ValidatedData['total_travel_time'] ?? null;
+        /* ---------------- Status ---------------- */
+        $consignment->status = $ValidatedData['status'] ?? 'draft';
+        /* ---------------- Party ---------------- */
+        $consignment->party_lr_no = $ValidatedData['party_lr_no'] ?? null;
+
+        $docFields = ['invoice', 'packageSlip', 'deliveryChallan', 'CargoDocs'];
+             
+            foreach ($docFields as $field) {
+                $uploadedPath = $this->uploadConsignmentDoc($request, $field,$consignment->id);
+            
+                if ($uploadedPath) {//this path will store in table
+                    $consignment->$field = $uploadedPath;
+                }
+            }
+         $consignment->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Consignment created successfully',
-            'data' => $ValidatedData,
+            'data' => $consignment,
         ], 200);
+        
 
 
     }
@@ -317,6 +531,22 @@ $ValidatedData = $validator->validated();
                 'message' => 'Consignment deleted successfully',
             ], 200);
     }
+    }
+
+    public function cargoTypeList(Request $request){
+        $cargoTypes = \App\Models\CargoType::all();
+
+        if(!$cargoTypes){
+            return response()->json([
+                'success' => false,
+                'message' => 'No cargo types found',
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Cargo Types fetched successfully',
+            'data' => $cargoTypes,
+        ], 200);
     }
 
     private function uploadConsignmentDoc(Request $request, string $field,$consignmentId)
