@@ -698,6 +698,95 @@
                 margin-bottom: 1rem;
             }
         }
+
+        /* Dropdown Menu Styles */
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-toggle {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-dropdown-toggle .dropdown-icon {
+            position: absolute;
+            right: 1rem;
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .sidebar.collapsed .nav-dropdown-toggle .dropdown-icon {
+            display: none;
+        }
+
+        .nav-dropdown.open .nav-dropdown-toggle .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        .nav-dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .nav-dropdown.open .nav-dropdown-menu {
+            max-height: 500px;
+        }
+
+        .nav-dropdown-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-dropdown-item .nav-link {
+            padding-left: 3rem;
+            font-size: 0.95rem;
+        }
+
+        .sidebar.collapsed .nav-dropdown-item .nav-link {
+            padding-left: 0.5rem;
+        }
+
+        .sidebar.collapsed:hover .nav-dropdown-item .nav-link {
+            padding-left: 3rem;
+        }
+
+        .nav-dropdown-toggle.has-active {
+            background: linear-gradient(135deg, rgba(0, 66, 113, 0.7) 0%, rgba(0, 45, 82, 0.7) 100%);
+            color: white !important;
+            font-weight: 600;
+        }
+
+        /* Collapsed sidebar hover behavior for dropdown */
+        .sidebar.collapsed .nav-dropdown-menu {
+            display: none;
+        }
+
+        .sidebar.collapsed:hover .nav-dropdown-menu {
+            display: block;
+        }
+
+        .sidebar.collapsed:hover .nav-dropdown.open .nav-dropdown-menu {
+            max-height: 500px;
+        }
+
+        .sidebar.collapsed:hover .nav-dropdown-toggle .dropdown-icon {
+            display: block;
+        }
+
+        /* Mobile dropdown styles */
+        @media (max-width: 992px) {
+            .nav-dropdown-item .nav-link {
+                padding-left: 3rem;
+                width: calc(100% - 1rem) !important;
+            }
+
+            .nav-dropdown-toggle .dropdown-icon {
+                display: block !important;
+            }
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -729,6 +818,15 @@
             overlay.addEventListener('click', function() {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
+            });
+
+            // Dropdown toggle functionality
+            document.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.closest('.nav-dropdown');
+                    dropdown.classList.toggle('open');
+                });
             });
 
             // Close sidebar when clicking on a nav link (mobile)
@@ -797,6 +895,7 @@
             });
 
             // Add active class to the matching nav link
+            let hasActiveChild = false;
             document.querySelectorAll('.nav-link').forEach(function(link) {
                 const linkPath = link.getAttribute('href');
                 if (linkPath) {
@@ -804,6 +903,13 @@
                     if (currentPath.includes('/admin/new-consignment')) {
                         if (linkPath.includes('new-consignment')) {
                             link.classList.add('active');
+                            hasActiveChild = true;
+                            // Open parent dropdown if this is a child item
+                            const parentDropdown = link.closest('.nav-dropdown');
+                            if (parentDropdown) {
+                                parentDropdown.classList.add('open');
+                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add('has-active');
+                            }
                             return;
                         }
                     }
@@ -824,7 +930,7 @@
                         }
                     }
 
-                    // 3. CHECK INVOICE
+                    // 4. CHECK INVOICE
                     else if (currentPath.includes('/admin/invoice')) {
                         if (linkPath.includes('invoice')) {
                             link.classList.add('active');
@@ -832,18 +938,40 @@
                         }
                     }
 
-                    // 4. CHECK GENERAL CONSIGNMENT
+                    // 5. CHECK GENERAL CONSIGNMENT
                     // This runs only if 'new-consignment' was NOT found
                     else if (currentPath.includes('/admin/consignment')) {
                         // Ensure we don't match 'new-consignment' or 'trip-status' here just in case
                         if (linkPath.includes('consignment') && !linkPath.includes('new-consignment') && !
                             linkPath.includes('trip-status')) {
                             link.classList.add('active');
+                            hasActiveChild = true;
+                            // Open parent dropdown if this is a child item
+                            const parentDropdown = link.closest('.nav-dropdown');
+                            if (parentDropdown) {
+                                parentDropdown.classList.add('open');
+                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add('has-active');
+                            }
                             return;
                         }
                     }
 
-                    // 5. GENERAL ROUTE MATCHING (For other pages)
+                    // 6. CHECK CUSTOMER PAGE
+                    else if (currentPath.includes('/admin/customer')) {
+                        if (linkPath.includes('customer') && !linkPath.includes('customer-consignment')) {
+                            link.classList.add('active');
+                            hasActiveChild = true;
+                            // Open parent dropdown if this is a child item
+                            const parentDropdown = link.closest('.nav-dropdown');
+                            if (parentDropdown) {
+                                parentDropdown.classList.add('open');
+                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add('has-active');
+                            }
+                            return;
+                        }
+                    }
+
+                    // 7. GENERAL ROUTE MATCHING (For other pages)
                     else if (currentPath === linkPath ||
                         (linkPath && currentPath.endsWith('/' + linkPath.split('/').pop()))) {
                         link.classList.add('active');
@@ -874,11 +1002,33 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
-                            <i class="fas fa-plus-circle"></i>
-                            <span class="nav-text">New Consignment</span>
+                    <!-- Consignment Management Dropdown -->
+                    <li class="nav-item nav-dropdown">
+                        <a class="nav-link nav-dropdown-toggle">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span class="nav-text">Consignment Management</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
+                        <ul class="nav-dropdown-menu">
+                            <li class="nav-dropdown-item">
+                                <a class="nav-link" href="{{ route('admin.new-consignment.index') }}">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span class="nav-text">New Consignment</span>
+                                </a>
+                            </li>
+                            <li class="nav-dropdown-item">
+                                <a class="nav-link" href="{{ route('admin.consignment.index') }}">
+                                    <i class="fas fa-truck"></i>
+                                    <span class="nav-text">Consignment</span>
+                                </a>
+                            </li>
+                            <li class="nav-dropdown-item">
+                                <a class="nav-link" href="{{ route('admin.customer.index') }}">
+                                    <i class="fas fa-users"></i>
+                                    <span class="nav-text">Customers</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
                     <li class="nav-item">
@@ -892,20 +1042,6 @@
                         <a class="nav-link" href="{{ route('admin.invoice.index') }}">
                             <i class="fas fa-file-invoice"></i>
                             <span class="nav-text">Invoice</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.consignment.index') }}">
-                            <i class="fas fa-truck"></i>
-                            <span class="nav-text">Consignment</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.customer.index') }}">
-                            <i class="fas fa-users"></i>
-                            <span class="nav-text">Customers</span>
                         </a>
                     </li>
 
