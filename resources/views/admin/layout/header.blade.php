@@ -1023,9 +1023,9 @@
                                 </a>
                             </li>
                             <li class="nav-dropdown-item">
-                                <a class="nav-link" href="{{ route('admin.customer.index') }}">
-                                    <i class="fas fa-users"></i>
-                                    <span class="nav-text">Customers</span>
+                                <a class="nav-link" href="{{ route('admin.customer-consignment') }}">
+                                    <i class="fas fa-box"></i>
+                                    <span class="nav-text">Customer Consignment</span>
                                 </a>
                             </li>
                         </ul>
@@ -1046,9 +1046,9 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.customer-consignment') }}">
-                            <i class="fas fa-box"></i>
-                            <span class="nav-text">Customer Consignment</span>
+                        <a class="nav-link" href="{{ route('admin.customer.index') }}">
+                            <i class="fas fa-users"></i>
+                            <span class="nav-text">Customers</span>
                         </a>
                     </li>
 
