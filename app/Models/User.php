@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'mobile',
         'role_id',
+        'franchise_id',
         'department',
         'position',
         'date_of_joining',
@@ -62,10 +63,34 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the franchise that owns the user.
+     */
+    public function franchise(): BelongsTo
+    {
+        return $this->belongsTo(Franchise::class);
+    }
+
+    /**
      * Get the role name for the user
      */
     public function getRoleNameAttribute()
     {
         return $this->role ? $this->role->name : 'No Role';
+    }
+
+    /**
+     * Check if user belongs to a specific franchise
+     */
+    public function belongsToFranchise($franchiseId): bool
+    {
+        return $this->franchise_id == $franchiseId;
+    }
+
+    /**
+     * Check if user is super admin (can access all franchises)
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->franchise_id === null || $this->role_id === 1;
     }
 }

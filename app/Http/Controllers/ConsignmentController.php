@@ -11,11 +11,25 @@ class ConsignmentController extends Controller
 {
     /**
      * Display a listing of the resource (Consignment Listing).
+     * Filtered by franchise_id from session
      */
     public function index()
     {
-        $transports = Transport::orderBy('created_at', 'desc')->get();
-        return view('admin.consignment.index', compact('transports'));
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::orderBy('created_at', 'desc');
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transports = $query->get();
+        
+        // Get franchise name for display
+        $franchiseName = session('selected_franchise_name');
+        
+        return view('admin.consignment.index', compact('transports', 'franchiseName'));
     }
 
     /**
@@ -23,7 +37,17 @@ class ConsignmentController extends Controller
      */
     public function show(string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
+        
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
@@ -53,7 +77,17 @@ class ConsignmentController extends Controller
      */
     public function edit(string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
+        
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
@@ -79,7 +113,17 @@ class ConsignmentController extends Controller
      */
     public function destroy(string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
+        
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
@@ -94,13 +138,25 @@ class ConsignmentController extends Controller
      */
     public function generateInvoicePDF(string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        $franchiseName = session('selected_franchise_name') ?? 'UAE';
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
+        
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
 
-        // Generate invoice number in format: INV/UAE/00001
-        $invoiceNo = 'INV/UAE/' . str_pad($id, 5, '0', STR_PAD_LEFT);
+        // Generate invoice number in format: INV/FRANCHISE/00001
+        $franchiseCode = strtoupper(substr($franchiseName, 0, 3));
+        $invoiceNo = 'INV/' . $franchiseCode . '/' . str_pad($id, 5, '0', STR_PAD_LEFT);
         
         $expenseTypes = is_array($transport->expense_types) ? implode(', ', $transport->expense_types) : ($transport->expense_types ?? '');
         $expenseAmounts = is_array($transport->expense_amounts) ? implode(', ', $transport->expense_amounts) : ($transport->expense_amounts ?? '');

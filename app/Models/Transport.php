@@ -8,6 +8,7 @@ class Transport extends Model
 {
     protected $fillable = [
         'order_no',
+        'franchise_id',
         'customer_id',
         'consignment_type',
         'consigner',
@@ -73,6 +74,14 @@ class Transport extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Get the franchise that owns this transport.
+     */
+    public function franchise()
+    {
+        return $this->belongsTo(Franchise::class);
     }
 
     /**

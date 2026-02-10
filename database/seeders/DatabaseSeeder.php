@@ -15,20 +15,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
         // Seed roles first
         $this->call(RoleSeeder::class);
 
-        // Seed contact submissions
-        $this->call(ContactSubmissionSeeder::class);
+        // Seed franchises (exactly 3: QTR, SAU, UAE)
+        $this->call(FranchiseSeeder::class);
 
-        // Seed drivers
-        $this->call(DriverSeeder::class);
+        // Seed franchise-specific admin users
+        $this->call(AdminUserSeeder::class);
+
+        // Note: ContactSubmissionSeeder and DriverSeeder removed due to missing models
+        // These can be added back when the models are created
     }
 }

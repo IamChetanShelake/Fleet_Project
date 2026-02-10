@@ -8,28 +8,50 @@ use Illuminate\Support\Facades\Validator;
 
 class FranchiseController extends Controller
 {
+    const MAX_FRANCHISES = 3; // Maximum allowed franchises
+
     /**
      * Display a listing of the resource.
+     * Shows maximum 3 franchises only
      */
     public function index()
     {
-        $franchises = Franchise::where('is_active', true)->get();
+        $franchises = Franchise::where('is_active', true)
+            ->orderBy('id')
+            ->take(self::MAX_FRANCHISES)
+            ->get();
         return view('franchises.index', compact('franchises'));
     }
 
     /**
      * Show the form for creating a new resource.
+     * Only allows creation if less than 3 franchises exist
      */
     public function create()
     {
+        $franchiseCount = Franchise::count();
+        
+        if ($franchiseCount >= self::MAX_FRANCHISES) {
+            return redirect()->route('franchises.index')
+                ->with('error', 'Maximum limit of ' . self::MAX_FRANCHISES . ' franchises has been reached. Cannot create more franchises.');
+        }
+        
         return view('franchises.create');
     }
 
     /**
      * Store a newly created resource in storage.
+     * Prevents creating more than 3 franchises
      */
     public function store(Request $request)
     {
+        // Check if maximum limit reached
+        $franchiseCount = Franchise::count();
+        if ($franchiseCount >= self::MAX_FRANCHISES) {
+            return redirect()->route('franchises.index')
+                ->with('error', 'Maximum limit of ' . self::MAX_FRANCHISES . ' franchises has been reached.');
+        }
+
         $validator = Validator::make($request->all(), [
             'country_name' => 'required|string|max:255',
             'currency' => 'required|string|max:10',
@@ -115,11 +137,14 @@ class FranchiseController extends Controller
 
     /**
      * Redirect to login page for selected franchise
+     * Stores franchise_id in session for franchise-specific login
      */
     public function login(string $id)
     {
         $franchise = Franchise::findOrFail($id);
         session(['selected_franchise_id' => $franchise->id]);
+        session(['selected_franchise_name' => $franchise->country_name]);
+        session(['selected_franchise_currency' => $franchise->currency]);
         return redirect()->route('login')->with('franchise', $franchise);
     }
 }
