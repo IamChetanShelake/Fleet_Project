@@ -10,19 +10,41 @@ class InvoiceController extends Controller
 {
     /**
      * Display a listing of all invoices (based on consignments).
+     * Filtered by franchise_id from session
      */
     public function index()
     {
-        $transports = Transport::orderBy('created_at', 'desc')->paginate(10);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::orderBy('created_at', 'desc');
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transports = $query->paginate(10);
+        
         return view('admin.invoice.index', compact('transports'));
     }
 
     /**
      * View Invoice details for a specific consignment.
+     * Filtered by franchise_id from session
      */
     public function view($id)
     {
-        $transport = Transport::findOrFail($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->firstOrFail();
+        
         return view('admin.invoice.view', compact('transport'));
     }
 
@@ -31,10 +53,34 @@ class InvoiceController extends Controller
      */
     public function download($id)
     {
-        $transport = Transport::findOrFail($id);
+        $franchiseId = session('franchise_id');
+        $franchiseName = session('selected_franchise_name') ?? 'UAE';
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->firstOrFail();
 
-        // Generate invoice number in format: INV/UAE/00001
-        $invoiceNo = 'INV/UAE/' . str_pad($id, 5, '0', STR_PAD_LEFT);
+        // Generate invoice number with franchise-specific prefix
+        $franchiseCode = 'UAE'; // Default
+        switch ($franchiseName) {
+            case 'Qatar':
+                $franchiseCode = 'QTR';
+                break;
+            case 'Saudi Arabia':
+                $franchiseCode = 'SAU';
+                break;
+            case 'United Arab Emirates':
+                $franchiseCode = 'UAE';
+                break;
+            default:
+                $franchiseCode = substr(strtoupper($franchiseName), 0, 3);
+        }
+        $invoiceNo = 'INV/' . $franchiseCode . '/' . str_pad($id, 5, '0', STR_PAD_LEFT);
         
         $expenseTypes = is_array($transport->expense_types) ? implode(', ', $transport->expense_types) : ($transport->expense_types ?? '');
         $expenseAmounts = is_array($transport->expense_amounts) ? implode(', ', $transport->expense_amounts) : ($transport->expense_amounts ?? '');

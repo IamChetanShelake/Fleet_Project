@@ -43,6 +43,7 @@ Route::put('/franchises/{id}', [FranchiseController::class, 'update'])->name('fr
 Route::delete('/franchises/{id}', [FranchiseController::class, 'destroy'])->name('franchises.destroy');
 Route::get('/franchises/{id}/login', [FranchiseController::class, 'login'])->name('franchises.login');
 
+
 // Login Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');

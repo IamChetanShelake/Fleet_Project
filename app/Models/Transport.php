@@ -100,27 +100,72 @@ class Transport extends Model
     }
 
     /**
-     * Generate a unique order number.
-     * Format: XX001 (2 letters + 3 digit sequential number)
+     * Generate a unique order number with franchise prefix.
+     * Format: FRANCHISE-CODE001 (e.g., UAE-TR001, QTR-TR001, SAU-TR001)
      */
     public static function generateOrderNo()
     {
-        // Get the last order number
-        $lastTransport = self::orderBy('id', 'desc')->first();
+        // Get franchise ID from session
+        $franchiseId = session('franchise_id');
+        $franchiseCode = 'UAE'; // Default
+        
+        if ($franchiseId) {
+            $franchise = self::where('franchise_id', $franchiseId)->first();
+            if ($franchise && $franchise->franchise) {
+                $countryName = $franchise->franchise->country_name;
+                switch ($countryName) {
+                    case 'Qatar':
+                        $franchiseCode = 'QTR';
+                        break;
+                    case 'Saudi Arabia':
+                        $franchiseCode = 'SAU';
+                        break;
+                    case 'United Arab Emirates':
+                        $franchiseCode = 'UAE';
+                        break;
+                    default:
+                        $franchiseCode = substr(strtoupper($countryName), 0, 3);
+                }
+            } else {
+                // Fallback to session data
+                $franchiseName = session('selected_franchise_name');
+                if ($franchiseName) {
+                    switch ($franchiseName) {
+                        case 'Qatar':
+                            $franchiseCode = 'QTR';
+                            break;
+                        case 'Saudi Arabia':
+                            $franchiseCode = 'SAU';
+                            break;
+                        case 'United Arab Emirates':
+                            $franchiseCode = 'UAE';
+                            break;
+                        default:
+                            $franchiseCode = substr(strtoupper($franchiseName), 0, 3);
+                    }
+                }
+            }
+        }
+        
+        // Get the last order number for this franchise
+        $lastTransport = self::where('order_no', 'like', $franchiseCode . '-%')
+            ->orderBy('id', 'desc')
+            ->first();
         
         $lastNumber = 0;
         if ($lastTransport && !empty($lastTransport->order_no)) {
             // Extract the numeric part from the last order number
-            $numericPart = substr($lastTransport->order_no, 2);
-            $lastNumber = (int) $numericPart;
+            $parts = explode('-', $lastTransport->order_no);
+            if (isset($parts[1])) {
+                $numericPart = substr($parts[1], 2); // Skip 'TR' prefix
+                $lastNumber = (int) $numericPart;
+            }
         }
         
         // Increment and pad with zeros
         $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
         
-        // Generate with current year prefix (e.g., "TR" for 2026)
-        $prefix = 'TR';
-        
-        return $prefix . $newNumber;
+        // Generate with franchise prefix
+        return $franchiseCode . '-TR' . $newNumber;
     }
 }

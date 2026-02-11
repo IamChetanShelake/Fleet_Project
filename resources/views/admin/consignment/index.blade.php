@@ -621,10 +621,27 @@
     const transportsData = {!! json_encode($transports) !!};
 
     function openInvoiceModal(id) {
-        const transport = transportsData.find(t => t.id === id);
+        const transport = transportsData.find(t => t.id == id);
         if (!transport) return;
 
-        const invoiceNo = 'INV/UAE/' + String(transport.order_no || transport.id).padStart(5, '0');
+        // Generate franchise-specific invoice number
+        let franchiseCode = 'UAE'; // Default
+        // Try to get franchise code from session or data
+        const franchiseName = '{{ $franchiseName ?? "UAE" }}';
+        switch (franchiseName) {
+            case 'Qatar':
+                franchiseCode = 'QTR';
+                break;
+            case 'Saudi Arabia':
+                franchiseCode = 'SAU';
+                break;
+            case 'United Arab Emirates':
+                franchiseCode = 'UAE';
+                break;
+            default:
+                franchiseCode = franchiseName.substring(0, 3).toUpperCase();
+        }
+        const invoiceNo = 'INV/' + franchiseCode + '/' + String(transport.id || transport.order_no || '00001').padStart(5, '0');
         
         const expenseTypes = Array.isArray(transport.expense_types) ? transport.expense_types.join(', ') : (transport.expense_types || 'N/A');
         const expenseAmounts = Array.isArray(transport.expense_amounts) ? transport.expense_amounts.join(', ') : (transport.expense_amounts || 'N/A');

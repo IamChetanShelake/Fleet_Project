@@ -1,0 +1,1031 @@
+{
+  "project_analysis": {
+    "project_name": "Fleet Management System",
+    "framework": "Laravel 12",
+    "php_version": "^8.2",
+    "analysis_date": "2025-02-11",
+    "overview": {
+      "type": "Multi-tenant Fleet Management & Logistics System",
+      "description": "A comprehensive fleet management application with consignment tracking, vehicle monitoring, driver management, and franchise-based multi-tenancy. The system supports full consignment lifecycle management from booking to delivery with PDF invoice generation, POD management, and trip status tracking.",
+      "architecture": "MVC (Model-View-Controller) with session-based franchise isolation",
+      "multi_tenancy": "Franchise-based data segregation using session filtering"
+    },
+    "technology_stack": {
+      "backend": {
+        "framework": "Laravel 12.0",
+        "php": "^8.2",
+        "packages": [
+          "laravel/framework:^12.0",
+          "laravel/sanctum:^4.0",
+          "laravel/ui:^4.6",
+          "barryvdh/laravel-dompdf:^3.1"
+        ]
+      },
+      "frontend": {
+        "css": "TailwindCSS 4.0 + Bootstrap 5.2.3",
+        "javascript": "ES6 Modules with Vite",
+        "build_tool": "Vite 7.0.7",
+        "icons": "Font Awesome (via Bootstrap)"
+      },
+      "database": {
+        "default": "MySQL",
+        "migrations": "Laravel Migrations",
+        "seeding": "Database Seeders"
+      },
+      "authentication": {
+        "primary": "Laravel Session-based (web guard)",
+        "api": "Laravel Sanctum",
+        "guards": [
+          "web (users)",
+          "customer (sanctum)",
+          "driver (sanctum)"
+        ]
+      }
+    },
+    "database_schema": {
+      "core_tables": [
+        {
+          "name": "users",
+          "purpose": "Admin users, team members, and system users",
+          "key_columns": [
+            "id",
+            "email",
+            "password",
+            "role_id (FK)",
+            "franchise_id (FK, nullable for super admin)",
+            "department",
+            "position",
+            "status",
+            "profile_image"
+          ],
+          "relationships": {
+            "belongsTo": ["Role", "Franchise"]
+          }
+        },
+        {
+          "name": "roles",
+          "purpose": "User role definitions (admin, manager, staff, etc.)",
+          "key_columns": ["id", "name", "slug", "description", "is_active"]
+        },
+        {
+          "name": "franchises",
+          "purpose": "Franchise data (UAE, Qatar, Saudi Arabia)",
+          "key_columns": [
+            "id",
+            "country_name",
+            "currency",
+            "has_tax",
+            "tax_percentage",
+            "is_active"
+          ],
+          "note": "Maximum 3 franchises allowed (enforced in FranchiseController)"
+        },
+        {
+          "name": "transports",
+          "purpose": "Consignment/Transport records (main entity)",
+          "key_columns": [
+            "id",
+            "order_no (auto-generated with franchise prefix)",
+            "franchise_id (FK)",
+            "customer_id (FK)",
+            "consignment_type",
+            "consigner",
+            "pickup_location",
+            "source_pincode",
+            "source_city",
+            "source_state",
+            "source_country",
+            "delivery_location",
+            "dest_pincode",
+            "dest_state",
+            "dest_country",
+            "pickup_datetime",
+            "delivery_date",
+            "receiver_name",
+            "receiver_mobile",
+            "party_lr_no",
+            "packages",
+            "weight",
+            "invoice_no",
+            "invoice_value",
+            "trip_type (FTL/LTL/Express)",
+            "vehicle_type",
+            "assigned_vehicle_no",
+            "assigned_driver",
+            "assigned_driver_id",
+            "handling_instructions",
+            "third_party_name",
+            "third_party_vehicle",
+            "freight_weight",
+            "weight_unit",
+            "rate_per_unit",
+            "total_packages",
+            "rate_per_package",
+            "fixed_cost",
+            "expense_types (JSON array)",
+            "expense_amounts (JSON array)",
+            "expense_remarks (JSON array)",
+            "final_notes",
+            "status (draft/assigned/confirmed/in_transit/delivered/cancelled)",
+            "total_cost",
+            "total_distance",
+            "total_travel_time"
+          ],
+          "relationships": {
+            "belongsTo": ["Franchise", "Customer"]
+          },
+          "auto_generation": "order_no format: {FRANCHISE_CODE}-TR{001-999}"
+        },
+        {
+          "name": "customers",
+          "purpose": "Customer information",
+          "key_columns": [
+            "id",
+            "name",
+            "address",
+            "mobile_no",
+            "email (unique)",
+            "password (hashed, nullable)",
+            "photo"
+          ]
+        },
+        {
+          "name": "vehicles",
+          "purpose": "Vehicle fleet management",
+          "key_columns": [
+            "id",
+            "brand",
+            "model",
+            "vehicle_number (unique)",
+            "purchase_date",
+            "registration_year",
+            "color",
+            "fuel_type",
+            "average",
+            "max_weight",
+            "current_odometer",
+            "insurance_valid_till",
+            "puc_expiry",
+            "vehicle_type",
+            "status (available/not_available/assigned)",
+            "driver_id (FK, nullable)",
+            "image_path",
+            "documents_path"
+          ],
+          "relationships": {
+            "belongsTo": ["DrivingTeam as driver"]
+          }
+        },
+        {
+          "name": "drivers",
+          "purpose": "Driver master data (separate from driving_teams)",
+          "key_columns": [
+            "id",
+            "driver_id (unique identifier)",
+            "name",
+            "blood_group",
+            "phone",
+            "emergency_phone",
+            "address",
+            "license_number",
+            "license_expiry",
+            "license_type",
+            "total_trips",
+            "experience_years",
+            "status",
+            "avatar_path"
+          ]
+        },
+        {
+          "name": "driving_teams",
+          "purpose": "Active driving team assignments",
+          "key_columns": [
+            "id",
+            "name",
+            "driver_id",
+            "phone_number",
+            "emergency_number",
+            "address",
+            "blood_group",
+            "license_number",
+            "license_expiry",
+            "license_type",
+            "experience",
+            "driver_photo",
+            "license_photo",
+            "status",
+            "kyc_status"
+          ],
+          "relationships": {
+            "hasMany": ["Vehicles"]
+          }
+        },
+        {
+          "name": "pods",
+          "purpose": "Proof of Delivery documents",
+          "key_columns": [
+            "id",
+            "transport_id (FK, cascade delete)",
+            "file_name",
+            "original_name",
+            "file_path",
+            "file_type",
+            "file_size",
+            "description"
+          ]
+        },
+        {
+          "name": "geographies",
+          "purpose": "Countries/Regions",
+          "key_columns": [
+            "id",
+            "name",
+            "code (unique)",
+            "currency",
+            "region",
+            "description",
+            "status",
+            "created_by (FK to users)",
+            "updated_by (FK to users)"
+          ],
+          "relationships": {
+            "hasMany": ["Cities", "Hubs"]
+          }
+        },
+        {
+          "name": "cities",
+          "purpose": "City data",
+          "key_columns": [
+            "id",
+            "name",
+            "country_id (FK)",
+            "hub_id (FK, nullable)",
+            "status",
+            "postal_code",
+            "latitude",
+            "longitude",
+            "timezone",
+            "created_by",
+            "updated_by"
+          ]
+        },
+        {
+          "name": "hubs",
+          "purpose": "Logistics hubs",
+          "key_columns": [
+            "id",
+            "name",
+            "country_id (FK)",
+            "city_id (FK, nullable)",
+            "code (unique)",
+            "address",
+            "contact_person",
+            "contact_number",
+            "status"
+          ]
+        },
+        {
+          "name": "brands",
+          "purpose": "Vehicle brands",
+          "key_columns": [
+            "id",
+            "name",
+            "slug (unique)",
+            "is_active",
+            "logo"
+          ]
+        },
+        {
+          "name": "cargo_types",
+          "purpose": "Cargo/Goods types",
+          "key_columns": [
+            "id",
+            "title",
+            "description",
+            "image"
+          ]
+        }
+      ],
+      "additional_tables": [
+        "team_members (minimal, only id and timestamps)",
+        "billing_entities",
+        "peak_accounts",
+        "tyres",
+        "fleets",
+        "expenses",
+        "attendances",
+        "performance_reports",
+        "admin_panels",
+        "utility_tools",
+        "help_centers",
+        "my_assistances",
+        "personal_access_tokens (sanctum)"
+      ]
+    },
+    "key_models": {
+      "Transport": {
+        "file": "app/Models/Transport.php",
+        "fillable": [
+          "order_no",
+          "franchise_id",
+          "customer_id",
+          "consignment_type",
+          "consigner",
+          "pickup_location",
+          "source_pincode",
+          "source_city",
+          "source_state",
+          "source_country",
+          "source_building_no",
+          "source_maps_link",
+          "delivery_location",
+          "address_line",
+          "building_no",
+          "dest_pincode",
+          "dest_state",
+          "dest_country",
+          "dest_building_no",
+          "dest_maps_link",
+          "pickup_datetime",
+          "delivery_date",
+          "receiver_name",
+          "receiver_mobile",
+          "party_lr_no",
+          "packages",
+          "weight",
+          "invoice_no",
+          "invoice_value",
+          "trip_type",
+          "vehicle_type",
+          "assigned_vehicle_no",
+          "assigned_driver",
+          "assigned_driver_id",
+          "handling_instructions",
+          "third_party_name",
+          "third_party_vehicle",
+          "freight_weight",
+          "weight_unit",
+          "rate_per_unit",
+          "total_packages",
+          "rate_per_package",
+          "fixed_cost",
+          "expense_types",
+          "expense_amounts",
+          "expense_remarks",
+          "final_notes",
+          "status",
+          "total_cost",
+          "total_distance",
+          "total_travel_time"
+        ],
+        "casts": {
+          "pickup_datetime": "datetime",
+          "delivery_date": "date",
+          "expense_types": "array",
+          "expense_amounts": "array",
+          "expense_remarks": "array"
+        },
+        "relationships": {
+          "belongsTo": ["Customer", "Franchise"]
+        },
+        "boot_method": "Auto-generates order_no on creating using generateOrderNo()",
+        "order_number_format": "{FRANCHISE_CODE}-TR{001-999} (e.g., UAE-TR001, QTR-TR001)"
+      },
+      "User": {
+        "file": "app/Models/User.php",
+        "fillable": [
+          "name",
+          "email",
+          "password",
+          "mobile",
+          "role_id",
+          "franchise_id",
+          "department",
+          "position",
+          "date_of_joining",
+          "status",
+          "profile_image"
+        ],
+        "hidden": ["password", "remember_token"],
+        "casts": {
+          "email_verified_at": "datetime",
+          "password": "hashed",
+          "date_of_joining": "date"
+        },
+        "relationships": {
+          "belongsTo": ["Role", "Franchise"]
+        },
+        "access_control": "Super admin has null franchise_id and can access all franchises"
+      },
+      "Franchise": {
+        "file": "app/Models/Franchise.php",
+        "fillable": [
+          "country_name",
+          "currency",
+          "has_tax",
+          "tax_percentage",
+          "is_active"
+        ],
+        "casts": {
+          "has_tax": "boolean",
+          "is_active": "boolean",
+          "tax_percentage": "decimal:2"
+        }
+      },
+      "Vehicle": {
+        "file": "app/Models/Vehicle.php",
+        "fillable": [
+          "brand",
+          "model",
+          "vehicle_number",
+          "purchase_date",
+          "registration_year",
+          "color",
+          "fuel_type",
+          "average",
+          "max_weight",
+          "current_odometer",
+          "insurance_valid_till",
+          "puc_expiry",
+          "vehicle_type",
+          "status",
+          "driver_id",
+          "image_path",
+          "documents_path"
+        ],
+        "relationships": {
+          "belongsTo": ["DrivingTeam as driver"]
+        }
+      },
+      "Customer": {
+        "file": "app/Models/Customer.php",
+        "fillable": [
+          "name",
+          "address",
+          "mobile_no",
+          "email",
+          "password",
+          "photo"
+        ],
+        "hidden": ["password"],
+        "uses": "HasApiTokens for customer API authentication"
+      },
+      "Pod": {
+        "file": "app/Models/Pod.php",
+        "fillable": [
+          "transport_id",
+          "file_name",
+          "original_name",
+          "file_path"
+        ],
+        "relationships": {
+          "belongsTo": ["Transport"]
+        }
+      }
+    },
+    "authentication_authorization": {
+      "multi_tenant": true,
+      "franchise_isolation": "Session-based with franchise_id filtering",
+      "login_flow": {
+        "step1": "Select franchise from public page (franchises.index)",
+        "step2": "Franchise ID stored in session (selected_franchise_id)",
+        "step3": "Login with credentials",
+        "step4": "Validate user belongs to selected franchise",
+        "step5": "Store franchise_id in session for data filtering"
+      },
+      "super_admin": {
+        "identification": "franchise_id = null OR role_id = 1",
+        "access": "Can access any franchise data",
+        "session_handling": "Uses selected_franchise_id from session"
+      },
+      "guards": {
+        "web": "Session-based for admin users",
+        "customer": "Sanctum token-based for customer portal",
+        "driver": "Sanctum token-based for driver app"
+      },
+      "middleware": [
+        "auth (standard Laravel)",
+        "auth.customer (custom for customer guard)"
+      ]
+    },
+    "business_features": {
+      "consignment_management": {
+        "module": "New Consignment (Multi-step Wizard)",
+        "controller": "NewConsignmentController",
+        "steps": [
+          {
+            "step": 1,
+            "name": "Route & Parties",
+            "route": "admin.new-consignment.create",
+            "fields": [
+              "consigner",
+              "pickup_location",
+              "source_pincode",
+              "source_city",
+              "source_state",
+              "source_country",
+              "source_building_no",
+              "source_maps_link",
+              "delivery_location",
+              "address_line",
+              "building_no",
+              "dest_pincode",
+              "dest_state",
+              "dest_country",
+              "dest_building_no",
+              "dest_maps_link",
+              "pickup_datetime",
+              "delivery_date",
+              "receiver_name",
+              "receiver_mobile"
+            ],
+            "status_after": "draft"
+          },
+          {
+            "step": 2,
+            "name": "Freight Assignment",
+            "route": "admin.freight-assignment.index",
+            "fields": [
+              "party_lr_no",
+              "packages",
+              "weight",
+              "invoice_no",
+              "invoice_value",
+              "trip_type (FTL/LTL/Express)",
+              "vehicle_type",
+              "assigned_vehicle_no",
+              "assigned_driver",
+              "assigned_driver_id",
+              "handling_instructions",
+              "third_party_name",
+              "third_party_vehicle"
+            ],
+            "logic": "Vehicle availability check - FTL assigned vehicles hidden from selection",
+            "status_after": "assigned"
+          },
+          {
+            "step": 3,
+            "name": "Charges & Advance",
+            "route": "admin.charges-advance.index",
+            "freight_options": [
+              "Rate By Weight (freight_weight × rate_per_unit)",
+              "Rate By Package (total_packages × rate_per_package)",
+              "Fixed Rate (fixed_cost)"
+            ],
+            "expense_tracking": {
+              "fields": ["expense_type[]", "expense_amount[]", "expense_remarks[]"],
+              "storage": "JSON arrays in transports table"
+            },
+            "final_fields": ["final_notes", "confirm_booking (accepted)"],
+            "calculation": "total_cost = freight_cost + sum(expenses)",
+            "status_after": "confirmed"
+          }
+        ],
+        "session_management": "transport_id stored in session between steps",
+        "draft_handling": "Auto-detects and continues existing draft on create"
+      },
+      "consignment_listing": {
+        "controller": "ConsignmentController",
+        "features": [
+          "List all consignments (including drafts)",
+          "Franchise-filtered view",
+          "View details with vehicle and driver info",
+          "Edit redirects to appropriate step based on status",
+          "Delete with franchise isolation",
+          "Generate PDF invoice"
+        ]
+      },
+      "trip_status_tracking": {
+        "controller": "TripStatusController",
+        "statuses": ["draft", "assigned", "confirmed", "in_transit", "delivered", "cancelled"],
+        "features": [
+          "View all trips with timeline",
+          "Edit trip status with reason",
+          "Timeline auto-generated from transport data",
+          "Delivery date auto-set on 'delivered' status"
+        ]
+      },
+      "pod_management": {
+        "controller": "PodController",
+        "features": [
+          "Upload multiple POD files per transport",
+          "File types: images, PDFs, documents",
+          "Storage: public/pod/{transport_id}/",
+          "View and download PODs",
+          "Delete with file cleanup"
+        ]
+      },
+      "invoice_generation": {
+        "controllers": ["ConsignmentController", "InvoiceController"],
+        "format": "PDF using DomPDF",
+        "invoice_number": "INV/{FRANCHISE_CODE}/{PADDED_ID} (e.g., INV/UAE/00001)",
+        "includes": [
+          "Consignment details",
+          "Freight charges",
+          "Expense breakdown",
+          "Total cost",
+          "Franchise-specific formatting"
+        ]
+      },
+      "customer_management": {
+        "controller": "CustomerController",
+        "features": [
+          "CRUD operations",
+          "Photo upload",
+          "Password hashing (optional)",
+          "Search by name, email, mobile"
+        ]
+      },
+      "vehicle_monitoring": {
+        "controller": "VehicleMonitoringController",
+        "features": [
+          "Vehicle CRUD with file uploads (photo, documents)",
+          "Brand-based grouping",
+          "Driver assignment",
+          "Status management (available/not_available)",
+          "Vehicle details view"
+        ]
+      },
+      "driver_management": {
+        "models": ["Driver", "DrivingTeam"],
+        "features": [
+          "Driver master data (Driver model)",
+          "Driving team assignments (DrivingTeam model)",
+          "KYC status tracking",
+          "License management with expiry",
+          "Photo uploads"
+        ]
+      },
+      "geography_management": {
+        "controller": "GeographyController",
+        "entities": ["Countries (Geographies)", "Cities", "Hubs"],
+        "features": [
+          "CRUD for all three entity types",
+          "Hierarchical structure: Country → City → Hub",
+          "Status toggling via AJAX",
+          "Dependent dropdowns (cities by country, hubs by country)",
+          "Latitude/longitude for cities"
+        ]
+      },
+      "brand_management": {
+        "controller": "BrandController",
+        "purpose": "Vehicle brand catalog with logo support"
+      },
+      "cargo_type_management": {
+        "controller": "cargoController",
+        "purpose": "Cargo types catalog with images"
+      }
+    },
+    "routes_structure": {
+      "public_routes": [
+        "/ (franchises.index)",
+        "/franchises/create",
+        "/franchises (POST store)",
+        "/franchises/{id}",
+        "/franchises/{id}/edit (PUT update)",
+        "/franchises/{id}/destroy",
+        "/franchises/{id}/login",
+        "/login (GET, POST)"
+      ],
+      "admin_routes": {
+        "prefix": "/admin",
+        "middleware": "auth",
+        "resources": [
+          "team-members",
+          "cargoTypes",
+          "driving-team",
+          "billing-entities",
+          "vehicle-monitoring",
+          "peak-accounts",
+          "tyre-maintenance",
+          "tyre-stock",
+          "fleet-management",
+          "transport-management",
+          "vehicle-maintenance",
+          "expense-tracking",
+          "geography",
+          "performance-reports",
+          "admin-panel",
+          "utilities-tools",
+          "help-center",
+          "my-assistance",
+          "consignment (index, show, destroy only)",
+          "new-consignment",
+          "brands",
+          "roles",
+          "customer"
+        ],
+        "custom_routes": {
+          "consignment": [
+            "GET /consignment/{id}/invoice/pdf"
+          ],
+          "trip-status": [
+            "GET /trip-status",
+            "GET /trip-status/{id}/view",
+            "GET /trip-status/{id}/edit",
+            "PUT /trip-status/{id}",
+            "PUT /trip-status/{id}/update-status"
+          ],
+          "pod": [
+            "GET /pod/{transportId}",
+            "POST /pod/{transportId}",
+            "DELETE /pod/{id}",
+            "GET /pod/{id}/download",
+            "GET /pod/{id}/view"
+          ],
+          "invoice": [
+            "GET /invoice",
+            "GET /invoice/{id}/view",
+            "GET /invoice/{id}/download"
+          ],
+          "freight-assignment": [
+            "GET /freight-assignment",
+            "POST /freight-assignment",
+            "GET /freight-assignment/{id}/edit",
+            "PUT /freight-assignment/{id}"
+          ],
+          "charges-advance": [
+            "GET /charges-advance",
+            "POST /charges-advance",
+            "GET /charges-advance/{id}/edit",
+            "PUT /charges-advance/{id}"
+          ],
+          "booking-confirmed": [
+            "GET /booking-confirmed"
+          ],
+          "customer-consignment": [
+            "GET /customer-consignment",
+            "GET /customer-consignment/index",
+            "GET /customer-consignment/listing",
+            "GET /customer-consignment/create",
+            "POST /customer-consignment",
+            "GET /customer-consignment/{id}",
+            "GET /customer-consignment/{id}/edit",
+            "PUT /customer-consignment/{id}",
+            "DELETE /customer-consignment/{id}",
+            "GET /customer-consignment/freight-assignment/{id}",
+            "POST /customer-consignment/freight-assignment/{id}",
+            "GET /customer-consignment/freight-assignment/{id}/edit",
+            "PUT /customer-consignment/freight-assignment/{id}",
+            "GET /customer-consignment/charges-advance/{id}",
+            "POST /customer-consignment/charges-advance/{id}",
+            "GET /customer-consignment/charges-advance/{id}/edit",
+            "PUT /customer-consignment/charges-advance/{id}",
+            "GET /customer-consignment/booking-confirm/{id}",
+            "GET /customer-consignment/{id}/assign-vehicle",
+            "POST /customer-consignment/{id}/assign-vehicle"
+          ],
+          "geography_ajax": [
+            "POST /geography/{id}/toggle-status",
+            "POST /cities/{id}/toggle-status",
+            "POST /hubs/{id}/toggle-status",
+            "GET /hubs-by-country/{countryId}",
+            "GET /cities-by-country/{countryId}"
+          ]
+        },
+        "logout": "POST /logout"
+      }
+    },
+    "views_structure": {
+      "layout": "resources/views/layouts/app.blade.php (default Laravel layout)",
+      "admin_layout": "resources/views/admin/layout/master.blade.php",
+      "view_count": "60+ Blade templates",
+      "main_modules": [
+        "admin/consignment",
+        "admin/new-consignment (multi-step wizard)",
+        "admin/customer-consignment",
+        "admin/trip-status",
+        "admin/pod",
+        "admin/invoice",
+        "admin/vehicle-monitoring",
+        "admin/driving-team",
+        "admin/geography",
+        "admin/brands",
+        "admin/cargoTypes",
+        "admin/customer",
+        "admin/team-members",
+        "admin/billing-entities",
+        "admin/peak-accounts",
+        "admin/tyre-maintenance",
+        "admin/tyre-stock",
+        "admin/fleet-management",
+        "admin/transport-management",
+        "admin/vehicle-maintenance",
+        "admin/expense-tracking",
+        "admin/performance-reports",
+        "admin/admin-panel",
+        "admin/utilities-tools",
+        "admin/help-center",
+        "admin/my-assistance",
+        "auth/login",
+        "franchises"
+      ],
+      "pdf_views": [
+        "admin/consignment/invoice-pdf.blade.php"
+      ]
+    },
+    "middleware": {
+      "global": [
+        "web (session, CSRF, etc.)"
+      ],
+      "route_middleware": [
+        "auth (standard Laravel authentication)"
+      ],
+      "custom_middleware": [
+        {
+          "name": "auth.customer",
+          "file": "app/Http/Middleware/AuthCustomer.php",
+          "purpose": "Protect customer API routes using customer guard",
+          "guard": "customer (Sanctum)"
+        }
+      ]
+    },
+    "session_management": {
+      "keys": [
+        "selected_franchise_id",
+        "selected_franchise_name",
+        "selected_franchise_currency",
+        "franchise_id (set after login)",
+        "transport_id (for multi-step consignment wizard)"
+      ],
+      "franchise_selection": "Before login - stored in session",
+      "post_login": "franchise_id set based on user's franchise or selected franchise for super admin"
+    },
+    "file_uploads": {
+      "storage": "Public directories (not using Laravel Storage facade)",
+      "directories": [
+        "public/customer_photos/",
+        "public/vehicle_photos/",
+        "public/vehicle_documents/",
+        "public/pod/{transport_id}/",
+        "public/driver_photos/",
+        "public/license_photos/",
+        "public/logos/",
+        "public/images/",
+        "public/assets/cargoImages/",
+        "public/assets/consignmentDocs/"
+      ],
+      "max_sizes": {
+        "customer_photo": "2MB",
+        "vehicle_photo": "5MB",
+        "vehicle_documents": "5MB"
+      }
+    },
+    "api_authentication": {
+      "customer_api": {
+        "guard": "customer",
+        "provider": "customers",
+        "model": "App\\Models\\Customer",
+        "token_driver": "sanctum"
+      },
+      "driver_api": {
+        "guard": "driver",
+        "provider": "drivers",
+        "model": "App\\Models\\Driver",
+        "token_driver": "sanctum"
+      }
+    },
+    "code_quality_observations": {
+      "strengths": [
+        "Clear separation of concerns with dedicated controllers",
+        "Consistent use of Laravel conventions",
+        "Franchise-based multi-tenancy implemented consistently",
+        "Multi-step wizard pattern with session management",
+        "Comprehensive CRUD operations for all modules",
+        "PDF generation for invoices",
+        "File upload handling with cleanup",
+        "AJAX-based status toggling",
+        "Proper validation and error handling",
+        "Logging for critical operations (GeographyController)"
+      ],
+      "areas_of_concern": [
+        {
+          "issue": "Inconsistent model completeness",
+          "details": "Some models (Fleet, Expense, Tyre, PerformanceReport, UtilityTool, TeamMember) are essentially empty shells with no fillable properties or relationships defined",
+          "impact": "These models appear to be placeholders and may cause issues if their corresponding controllers are used"
+        },
+        {
+          "issue": "Direct file manipulation using public_path()",
+          "details": "Controllers use public_path() and file_exists() instead of Laravel's Storage facade",
+          "impact": "Less portable, harder to test, no abstraction for different filesystems"
+        },
+        {
+          "issue": "Hard-coded franchise codes",
+          "details": "Multiple places have hard-coded 'UAE', 'QTR', 'SAU' logic",
+          "impact": "Difficult to maintain if franchise list changes, should be database-driven"
+        },
+        {
+          "issue": "Duplicate PDF generation code",
+          "details": "Similar PDF generation logic exists in both ConsignmentController and InvoiceController",
+          "impact": "Code duplication, maintenance overhead"
+        },
+        {
+          "issue": "Session-based draft detection",
+          "details": "NewConsignmentController checks for existing drafts using complex logic",
+          "impact": "May lead to race conditions or unexpected behavior with multiple users"
+        },
+        {
+          "issue": "Missing model relationships",
+          "details": "Transport model doesn't define belongsTo relationships in code (only used inline)",
+          "impact": "Loss of Laravel's relationship features and IDE helper support"
+        },
+        {
+          "issue": "Mixed naming conventions",
+          "details": "Some controllers use singular (ConsignmentController), others use descriptive (NewConsignmentController)",
+          "impact": "Inconsistent API"
+        },
+        {
+          "issue": "Potential N+1 query issues",
+          "details": "Some queries don't use eager loading (e.g., DashboardController)",
+          "impact": "Performance degradation with large datasets"
+        }
+      ],
+      "security_considerations": [
+        "Franchise isolation via session - ensure session hijacking is prevented",
+        "File upload validation present but should be reviewed for bypasses",
+        "Password hashing used for customers",
+        "CSRF protection via Laravel middleware",
+        "SQL injection protected by Eloquent ORM",
+        "Authorization checks on franchise_id in all queries"
+      ]
+    },
+    "business_rules": {
+      "franchise_limitation": "Maximum 3 franchises allowed",
+      "order_number_generation": "Sequential per franchise with country-based prefix",
+      "vehicle_assignment": {
+        "ftl_rule": "FTL assigned vehicles are hidden from new assignments",
+        "ltl_rule": "LTL vehicles can be reassigned",
+        "status_update": "Vehicle status changes to 'assigned' when transport assigned"
+      },
+      "consignment_workflow": {
+        "draft": "Basic route and party information saved",
+        "assigned": "Vehicle and driver assigned",
+        "confirmed": "Charges entered and booking confirmed",
+        "in_transit": "Trip started",
+        "delivered": "Delivery completed, date auto-set",
+        "cancelled": "Trip cancelled"
+      },
+      "freight_calculation": {
+        "mutual_exclusivity": "Only one freight option can be selected (weight/package/fixed)",
+        "validation": "At least one freight option required",
+        "total_cost": "freight_cost + sum(expenses)"
+      },
+      "invoice_numbering": "Franchise-specific prefix with padded ID",
+      "pod_management": "Multiple files per transport, stored in franchise-isolated directories"
+    },
+    "performance_considerations": {
+      "database_indexing": "Unknown - should review migrations for indexes",
+      "eager_loading": "Partially implemented, needs review",
+      "pagination": "Used in some controllers (Geography, Invoice), not in others",
+      "file_storage": "Direct filesystem access may impact scalability",
+      "session_usage": "Heavy reliance on session for multi-step flows"
+    },
+    "recommendations": {
+      "immediate": [
+        "Complete the empty model definitions or remove unused controllers",
+        "Extract PDF generation to a service class to avoid duplication",
+        "Replace hard-coded franchise codes with database configuration",
+        "Implement Storage facade for file operations",
+        "Add database indexes on frequently queried columns (franchise_id, status, etc.)"
+      ],
+      "short_term": [
+        "Define proper relationships in Transport model",
+        "Implement consistent pagination across all listing pages",
+        "Add eager loading to prevent N+1 queries",
+        "Standardize controller naming conventions",
+        "Add API resources for potential mobile app integration"
+      ],
+      "long_term": [
+        "Consider queue jobs for PDF generation and email notifications",
+        "Implement real-time tracking with WebSockets or Server-Sent Events",
+        "Add comprehensive logging and monitoring",
+        "Implement role-based permissions (beyond simple role_id)",
+        "Add audit trail for critical changes",
+        "Consider using Laravel's built-in features like Implicit Route Model Binding",
+        "Refactor multi-step wizard to use a dedicated service class",
+        "Implement proper file storage with cloud support (S3, etc.)"
+      ]
+    },
+    "testing": {
+      "framework": "PHPUnit (configured)",
+      "test_count": "Unknown - tests/ directory exists but contents not analyzed",
+      "coverage": "No evidence of comprehensive test coverage",
+      "recommendation": "Add unit and feature tests for critical workflows"
+    },
+    "deployment": {
+      "environment": ".env configuration present",
+      "database": "MySQL (fleet_mayur)",
+      "build_process": "npm run build for frontend assets",
+      "server": "Apache (.htaccess present)",
+      "queue": "Database queue connection configured",
+      "cache": "Database cache store configured"
+    },
+    "conclusion": {
+      "summary": "A functional fleet management system with solid foundation but areas for improvement. The multi-tenant architecture is well-conceived with franchise-based isolation. The consignment management workflow is comprehensive with proper state management. However, code quality inconsistencies and incomplete models need attention.",
+      "complexity": "Medium to High - 30+ controllers, 25+ models, extensive business logic",
+      "maintainability": "Moderate - needs refactoring for consistency and completeness",
+      "scalability": "Good foundation but needs optimization (indexes, eager loading, queue jobs)",
+      "production_readiness": "70% - functional but requires testing, security audit, and performance optimization"
+    }
+  }
+}

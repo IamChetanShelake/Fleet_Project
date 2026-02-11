@@ -11,19 +11,40 @@ class TripStatusController extends Controller
 {
     /**
      * Display a listing of all trips with their status.
+     * Filtered by franchise_id from session
      */
     public function index()
     {
-        $transports = Transport::orderBy('created_at', 'desc')->get();
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::orderBy('created_at', 'desc');
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transports = $query->get();
+        
         return view('admin.trip-status.index', compact('transports'));
     }
 
     /**
      * Display trip details page with timeline and map.
+     * Filtered by franchise_id from session
      */
     public function view(string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
         if (!$transport) {
             abort(404, 'Trip not found.');
         }
@@ -53,10 +74,20 @@ class TripStatusController extends Controller
 
     /**
      * Show the form for editing the specified trip.
+     * Filtered by franchise_id from session
      */
     public function edit(string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
         if (!$transport) {
             abort(404, 'Trip not found.');
         }
@@ -83,10 +114,20 @@ class TripStatusController extends Controller
 
     /**
      * Update the specified trip in storage.
+     * Filtered by franchise_id from session
      */
     public function update(Request $request, string $id)
     {
-        $transport = Transport::find($id);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
         if (!$transport) {
             abort(404, 'Trip not found.');
         }
@@ -111,18 +152,28 @@ class TripStatusController extends Controller
 
     /**
      * Update trip status.
+     * Filtered by franchise_id from session
      */
     public function updateStatus(Request $request, string $id)
     {
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $id);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->first();
+        if (!$transport) {
+            return response()->json(['error' => 'Trip not found.'], 404);
+        }
+
         $request->validate([
             'status' => 'required|string|in:draft,assigned,confirmed,in_transit,delivered,cancelled',
             'reason' => 'nullable|string|max:500',
         ]);
-
-        $transport = Transport::find($id);
-        if (!$transport) {
-            return response()->json(['error' => 'Trip not found.'], 404);
-        }
 
         // Update status
         $transport->status = $request->status;

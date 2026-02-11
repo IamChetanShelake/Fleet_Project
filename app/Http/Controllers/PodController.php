@@ -13,10 +13,20 @@ class PodController extends Controller
 {
     /**
      * Display POD upload page for a specific transport
+     * Filtered by franchise_id from session
      */
     public function index($transportId)
     {
-        $transport = Transport::findOrFail($transportId);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $transportId);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->firstOrFail();
         $pods = Pod::where('transport_id', $transportId)->orderBy('created_at', 'desc')->get();
 
         return view('admin.pod.index', compact('transport', 'pods'));
@@ -24,10 +34,20 @@ class PodController extends Controller
 
     /**
      * Store uploaded POD files
+     * Filtered by franchise_id from session
      */
     public function store(Request $request, $transportId)
     {
-        $transport = Transport::findOrFail($transportId);
+        $franchiseId = session('franchise_id');
+        
+        $query = Transport::where('id', $transportId);
+        
+        // Filter by franchise if franchise_id is in session
+        if ($franchiseId) {
+            $query->where('franchise_id', $franchiseId);
+        }
+        
+        $transport = $query->firstOrFail();
         
         $uploadedFiles = [];
         $errorFiles = [];
