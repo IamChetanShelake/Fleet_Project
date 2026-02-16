@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Transport;
+use App\Models\CargoType;
+use App\Models\Driver;
 
 class consignmentApiController extends Controller
 {
@@ -85,6 +87,11 @@ class consignmentApiController extends Controller
             'receiver_name' => 'nullable|string|max:255',
             'receiver_mobile' => 'nullable|string|max:20',
             'delivery_location' => 'nullable|string|max:255',
+            
+            'pickup_latitude' => 'required|decimal:0,10',
+            'pickup_longitude' => 'required|decimal:0,10',
+            'delivery_latitude' => 'required|decimal:0,10',
+            'delivery_longitude' => 'required|decimal:0,10',
     
             'cargoType' => 'nullable|integer',
             'total_packages' => 'nullable|integer|min:0',
@@ -201,6 +208,10 @@ if ($validator->fails()) {
         $consignment->pickup_location = $ValidatedData['pickupLocation'];
         $consignment->consignment_type = "customer";
         $consignment->pickup_datetime = $ValidatedData['pickupDate'] . ' ' . $ValidatedData['pickupTime'];
+        $consignment->pickupLatitude = $ValidatedData['pickup_latitude'] ?? null;
+        $consignment->pickupLongitude = $ValidatedData['pickup_longitude'] ?? null;
+        $consignment->deliveryLatitude = $ValidatedData['delivery_latitude'] ?? null;
+        $consignment->deliveryLongitude = $ValidatedData['delivery_longitude'] ?? null;
         /* ---------------- Receiver ---------------- */
         $consignment->receiver_name = $ValidatedData['receiver_name'] ?? null;
         $consignment->receiver_mobile = $ValidatedData['receiver_mobile'] ?? null;
@@ -275,6 +286,13 @@ if ($validator->fails()) {
                 }
             }
          $consignment->save();
+
+          //send notification
+         $request->user()->notify(new sendNotification(
+             'Consignment Booked Successfully',//title
+             'Order No : '.$consignment->order_no.', From: '.$consignment->pickup_location.', To: '.$consignment->delivery_location,//message
+             'Booking'  //type
+             ));
 
         return response()->json([
             'success' => true,
@@ -549,6 +567,106 @@ if ($validator->fails()) {
         ], 200);
     }
 
+    public function shipmentTracking(Request $request)
+    {
+         if(!$request->user()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: please login',
+            ], 401);
+         }
+        $validator = Validator::make($request->all(), [
+            'consignmentId' => 'required|exists:transports,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $validatedData = $validator->validated();
+        $consignment = Transport::find($validatedData['consignmentId']);
+
+        if (!$consignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consignment not found',
+            ], 404);
+        }
+
+        // Assuming you have a ShipmentTracking model related to the Transport model
+        $trackingInfo = $consignment->shipmentTracking; // Adjust this based on your actual relationship
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Shipment tracking information fetched successfully',
+            'data' => $trackingInfo,
+        ], 200);
+    }
+
+      public function assignedDriver(Request $request)
+    {
+         if(!$request->user()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: please login',
+            ], 401);
+         }
+        $validator = Validator::make($request->all(), [
+            'consignmentId' => 'required|exists:transports,id',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $validatedData = $validator->validated();
+        $consignment = Transport::find($validatedData['consignmentId']);
+        if (!$consignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Consignment not found',
+            ], 404);
+        }
+        $assignedDriver = $consignment->assigned_driver_id ?? null; // Adjust this based on your actual relationship
+
+        if(!$assignedDriver){
+            return response()->json([
+                'success' => false,
+                'message' => 'No driver assigned to this consignment yet',
+            ], 404);
+        }
+        $assignedDriver = Driver::find($assignedDriver);
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assigned driver fetched successfully',
+            'driver' => [
+                'driver_id' => $assignedDriver->driver_id ?? null,
+                'driver_name' => $assignedDriver->name ?? null,
+                'driver_mobile' => $assignedDriver->phone ?? null,
+                'driver_emergency_mobile' => $assignedDriver->emergency_phone ?? null,
+                'vehicle_licensed_no' => $assignedDriver->license_number ?? null,
+                'vehicle_type' => $consignment->vehicle_type ?? null,
+            ],
+            'pickup' =>[
+                'latitude'=>$consignment->pickupLatitude,
+                'longitude'=>$consignment->pickupLongitude,
+                ],
+            'drop' =>[
+                'deliveryLatitude'=>$consignment->deliveryLatitude,
+                'deliveryLongitude'=>$consignment->deliveryLongitude,
+                ],
+        ], 200);
+    }
     private function uploadConsignmentDoc(Request $request, string $field,$consignmentId)
 {
     if (!$request->hasFile($field)) {

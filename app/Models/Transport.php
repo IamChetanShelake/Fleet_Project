@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transport extends Model
 {
@@ -67,6 +68,14 @@ class Transport extends Model
         'expense_amounts' => 'array',
         'expense_remarks' => 'array',
     ];
+      protected $appends = ['documents'];
+    protected $hidden = [
+    'invoice',
+    'packageSlip',
+    'deliveryChallan',
+    'CargoDocs',
+];
+
 
     /**
      * Get the customer that owns this transport.
@@ -122,5 +131,34 @@ class Transport extends Model
         $prefix = 'TR';
         
         return $prefix . $newNumber;
+    }
+    public function getDocumentsAttribute()
+    {
+        return [
+            'invoice' => $this->invoice
+                ? asset($this->invoice)
+                : null,
+    
+            'packageSlip' => $this->packageSlip
+                ? asset($this->packageSlip)
+                : null,
+    
+            'deliveryChallan' => $this->deliveryChallan
+                ? asset($this->deliveryChallan)
+                : null,
+    
+            'CargoDocs' => $this->CargoDocs
+                ? asset($this->CargoDocs)
+                : null,
+        ];
+    }
+
+      public function driver(): belongsTo //one consignment has one driver
+    {
+        return $this->belongsTo(Driver::class, 'assigned_driver_id', 'id');
+    // Parameter 1: Related model
+    // Parameter 2: Foreign key on transports table
+    // Parameter 3: Owner key on drivers table
+    
     }
 }

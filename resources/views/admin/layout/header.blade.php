@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Peak Logistics - Website Content Management System</title>
@@ -9,6 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
             --primary-color: #004271;
@@ -908,7 +910,8 @@
                             const parentDropdown = link.closest('.nav-dropdown');
                             if (parentDropdown) {
                                 parentDropdown.classList.add('open');
-                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add('has-active');
+                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add(
+                                    'has-active');
                             }
                             return;
                         }
@@ -950,7 +953,8 @@
                             const parentDropdown = link.closest('.nav-dropdown');
                             if (parentDropdown) {
                                 parentDropdown.classList.add('open');
-                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add('has-active');
+                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add(
+                                    'has-active');
                             }
                             return;
                         }
@@ -965,7 +969,8 @@
                             const parentDropdown = link.closest('.nav-dropdown');
                             if (parentDropdown) {
                                 parentDropdown.classList.add('open');
-                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add('has-active');
+                                parentDropdown.querySelector('.nav-dropdown-toggle').classList.add(
+                                    'has-active');
                             }
                             return;
                         }
