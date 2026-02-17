@@ -23,8 +23,15 @@ class Customer extends Model
         'password',
     ];
 
+    protected $appends = ['profile'];
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function getProfileAttribute()
+    {
+        return $this->photo ? asset('assets/'.$this->photo) : null;
+    }
 }

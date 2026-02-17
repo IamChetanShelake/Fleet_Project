@@ -32,6 +32,12 @@ use App\Http\Controllers\CustomerConsignmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\cargoController;
 use Illuminate\Support\Facades\Auth;
+use App\Events\TestBroadcast;
+
+// routes/web.php
+Route::get('/test', function () {
+    return view('test');
+});
 
 // Franchise Selection Routes (Before Login)
 Route::get('/', [FranchiseController::class, 'index'])->name('franchises.index');
@@ -421,6 +427,13 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Auth::logout();
         return redirect('/');
     })->name('logout');
-});
+
+    });
+    
+    
+    Route::get('/test-broadcast', function () {
+        broadcast(new TestBroadcast('Hello from Reverb'));
+        return 'sent';
+        });
 
 // Auth::routes(['register' => false]);

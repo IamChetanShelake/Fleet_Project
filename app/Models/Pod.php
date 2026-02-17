@@ -16,6 +16,8 @@ class Pod extends Model
         'file_path',
     ];
 
+     protected $appends = ['proof_of_delivery'];
+
     /**
      * Get the transport that owns the POD
      */
@@ -23,4 +25,11 @@ class Pod extends Model
     {
         return $this->belongsTo(Transport::class);
     }
+
+      public function getProofOfDeliveryAttribute()
+{
+    return $this->file_path 
+        ? asset($this->file_path)
+        : null;
+}
 }
