@@ -57,4 +57,9 @@ Route::prefix('driver')->middleware('auth:driver')->group(function () {
     Route::post('/login',[driverApiController::class,'driverlogin']);
     Route::post('/logout', [driverApiController::class, 'driverlogout'])->middleware('auth:driver');
     Route::post('updateLocation', [driverApiController::class, 'updateLocation']);
+    Route::post('updateProfile', [AuthApiController::class, 'updateDriverProfile'])->middleware('auth:driver');
+    Route::post('checkDocuments', [AuthApiController::class, 'checkDriverDocuments'])->middleware('auth:driver');
+    Route::get('assignedTrips',[driverApiController::class, 'assignedTrips'])->middleware('auth:driver');
+    Route::get('vehicleDetails',[driverApiController::class, 'vehicleDetails'])->middleware('auth:driver');
+
 });

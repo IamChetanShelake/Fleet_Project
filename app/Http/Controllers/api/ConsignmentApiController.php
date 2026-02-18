@@ -668,16 +668,19 @@ if ($validator->fails()) {
         ], 200);
     }
     private function uploadConsignmentDoc(Request $request, string $field,$consignmentId)
-{
-    if (!$request->hasFile($field)) {
-        return null;
+    {
+        if (!$request->hasFile($field)) {
+            return null;
+        }
+
+        $file = $request->file($field);
+
+        $fileName = 'consignment'.$consignmentId.'_'.uniqid().'.'. $file->getClientOriginalExtension();
+        $file->move('assets/consignmentDocs', $fileName);
+
+        return 'assets/consignmentDocs/' . $fileName;
     }
 
-    $file = $request->file($field);
+   
 
-    $fileName = 'consignment'.$consignmentId.'_'.uniqid().'.'. $file->getClientOriginalExtension();
-    $file->move('assets/consignmentDocs', $fileName);
-
-    return 'assets/consignmentDocs/' . $fileName;
-}
 }

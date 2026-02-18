@@ -7,26 +7,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DrivingTeam extends Model
 {
-    protected $fillable = [
-        'name',
-        'driver_id',
-        'phone_number',
-        'emergency_number',
-        'address',
-        'blood_group',
-        'license_number',
-        'license_expiry',
-        'license_type',
-        'experience',
-        'driver_photo',
-        'license_photo',
-        'status',
-        'kyc_status'
+    protected $guarded = [
+      
     ];
 
     protected $casts = [
         'license_expiry' => 'date',
-        'status' => 'string'
+        'passportExpiryDate'=>'date',
+        'InsuranceExpiryDate'=>'date',
+        'LicenseExpiryDate'=>'date',
+        'license_expiry'=>'date',
+        'dob'=>'date',
+        'status' => 'string',
+        'total_trips' => 'integer',
+        'experience_years' => 'integer'
     ];
 
     public function vehicles(): HasMany
