@@ -1,377 +1,524 @@
-@extends('admin.layout.master')
+@extends('admin.layouts.app')
 
 @section('title', 'Driver Details')
 
 @section('content')
-<div class="main-content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="section-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">Driver Details</h3>
-                        <div>
-                            <a href="{{ route('admin.driving-team.edit', $drivingTeam->id) }}" class="btn btn-warning">
-                                <i class="fas fa-edit mr-2"></i> Edit
-                            </a>
-                            <a href="{{ route('admin.driving-team.index') }}" class="btn btn-outline-custom">
-                                <i class="fas fa-arrow-left mr-2"></i> Back to List
-                            </a>
+<div class="container-fluid py-4">
+
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 fw-bold">Driver Profile</h4>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.driving-team.edit', $drivingTeam->id) }}" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit me-1"></i> Edit
+            </a>
+            <a href="{{ route('admin.driving-team.index') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    {{-- Profile Header Card --}}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-4 flex-wrap">
+                {{-- Avatar --}}
+                <div class="flex-shrink-0">
+                    @if($drivingTeam->avatar_path || $drivingTeam->driverPhoto)
+                        <img src="{{ asset($drivingTeam->avatar_path ?? $drivingTeam->driverPhoto) }}"
+                            alt="{{ $drivingTeam->name }}"
+                            class="rounded-circle border"
+                            style="width:110px; height:110px; object-fit:cover;"
+                            onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($drivingTeam->name) }}&size=110&background=4e73df&color=fff'">
+                    @else
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                            style="width:110px; height:110px; font-size:2.5rem;">
+                            {{ strtoupper(substr($drivingTeam->name, 0, 1)) }}
                         </div>
+                    @endif
+                </div>
+
+                {{-- Basic Info --}}
+                <div class="flex-grow-1">
+                    <h3 class="mb-1 fw-bold">{{ $drivingTeam->name }}</h3>
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-id-badge me-1"></i> {{ $drivingTeam->driver_id ?? 'N/A' }}
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-envelope me-1"></i> {{ $drivingTeam->email ?? 'N/A' }}
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-phone me-1"></i> {{ $drivingTeam->phone ?? 'N/A' }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        {{-- Duty Status Badge --}}
+                        @php
+                            $statusColor = match($drivingTeam->status) {
+                                'on_duty'  => 'success',
+                                'on_leave' => 'warning',
+                                default    => 'secondary',
+                            };
+                        @endphp
+                        <span class="badge bg-{{ $statusColor }} fs-6">
+                            <i class="fas fa-circle me-1" style="font-size:0.6rem;"></i>
+                            {{ ucwords(str_replace('_', ' ', $drivingTeam->status ?? 'off_duty')) }}
+                        </span>
+
+                        {{-- Active Status --}}
+                        <span class="badge bg-{{ ($drivingTeam->activeStatus ?? 'active') === 'active' ? 'primary' : 'danger' }} fs-6">
+                            {{ ucfirst($drivingTeam->activeStatus ?? 'active') }}
+                        </span>
+
+                        {{-- KYC Status --}}
+                        @php
+                            $kycColor = match($drivingTeam->kyc_status ?? 'pending') {
+                                'approved'              => 'success',
+                                'pending'               => 'warning',
+                                'under_review'          => 'info',
+                                'reverification_needed' => 'orange',
+                                'rejected'              => 'danger',
+                                default                 => 'secondary',
+                            };
+                            if($kycColor === 'orange') $kycColor = 'warning';
+                        @endphp
+                        <span class="badge bg-{{ $kycColor }} fs-6">
+                            KYC: {{ ucwords(str_replace('_', ' ', $drivingTeam->kyc_status ?? 'pending')) }}
+                        </span>
+
+                        {{-- Country Level --}}
+                        <span class="badge bg-dark fs-6">
+                            {{ ucfirst($drivingTeam->countryLevel ?? 'local') }}
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="text-center mb-4">
-                                    <h4 class="mb-3">{{ $drivingTeam->name }}</h4>
-                                    <div class="d-flex justify-content-center mb-3">
-                                        <span class="badge {{ $drivingTeam->status == 'active' ? 'bg-success' : 'bg-secondary' }} me-2">{{ ucfirst($drivingTeam->status) }}</span>
-                                        <span class="badge bg-primary">{{ $drivingTeam->experience ?: 'N/A' }} Years Experience</span>
-                                    </div>
-                                </div>
+                </div>
 
-                                <!-- Driver Photos -->
-                                <div class="row">
-                                    <div class="col-12 mb-3">
-                                        <div class="card">
-                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">Driver Photo</h6>
-                                                @if($drivingTeam->driver_photo)
-                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewImage('{{ asset($drivingTeam->driver_photo) }}', 'Driver Photo', '{{ $drivingTeam->driver_photo }}')">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                @endif
-                                            </div>
-                                            <div class="card-body text-center">
-                                                @if($drivingTeam->driver_photo)
-                                                    <img src="{{ asset($drivingTeam->driver_photo) }}" alt="Driver Photo" class="img-fluid rounded" style="width: 150px; height: 120px; object-fit: cover; cursor: pointer;" onclick="viewImage('{{ asset($drivingTeam->driver_photo) }}', 'Driver Photo', '{{ $drivingTeam->driver_photo }}')">
-                                                @else
-                                                    <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 120px;">
-                                                        <i class="fas fa-user text-muted" style="font-size: 2rem;"></i>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
+                {{-- Stats --}}
+                <div class="d-flex gap-4 text-center flex-shrink-0">
+                    <div>
+                        <div class="h3 fw-bold text-primary mb-0">{{ $drivingTeam->total_trips ?? 0 }}</div>
+                        <small class="text-muted">Total Trips</small>
+                    </div>
+                    <div>
+                        <div class="h3 fw-bold text-success mb-0">{{ $drivingTeam->experience_years ?? 0 }}</div>
+                        <small class="text-muted">Yrs Experience</small>
+                    </div>
+                    <div>
+                        <div class="h3 fw-bold text-warning mb-0">{{ $drivingTeam->blood_group ?? '—' }}</div>
+                        <small class="text-muted">Blood Group</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                                    <div class="col-12">
-                                        <div class="card">
-                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">License Photo</h6>
-                                                @if($drivingTeam->license_photo)
-                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewImage('{{ asset($drivingTeam->license_photo) }}', 'License Photo', '{{ $drivingTeam->license_photo }}')">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                @endif
-                                            </div>
-                                            <div class="card-body text-center">
-                                                @if($drivingTeam->license_photo)
-                                                    <img src="{{ asset($drivingTeam->license_photo) }}" alt="License Photo" class="img-fluid rounded" style="width: 150px; height: 120px; object-fit: cover; cursor: pointer;" onclick="viewImage('{{ asset($drivingTeam->license_photo) }}', 'License Photo', '{{ $drivingTeam->license_photo }}')">
-                                                @else
-                                                    <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 120px;">
-                                                        <i class="fas fa-id-card text-muted" style="font-size: 2rem;"></i>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+    <div class="row g-4">
+
+        {{-- LEFT COLUMN --}}
+        <div class="col-lg-8">
+
+            {{-- Personal Information --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Nationality</label>
+                            <span class="fw-semibold">{{ $drivingTeam->nationality ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Date of Birth</label>
+                            <span class="fw-semibold">{{ $drivingTeam->dob ? $drivingTeam->dob->format('d M Y') : '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Driver Type</label>
+                            <span class="fw-semibold">{{ $drivingTeam->driverType ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Emergency Phone</label>
+                            <span class="fw-semibold">{{ $drivingTeam->emergency_phone ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Emergency Relation</label>
+                            <span class="fw-semibold">{{ $drivingTeam->emergencyRelation ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Country Level</label>
+                            <span class="fw-semibold">{{ ucfirst($drivingTeam->countryLevel ?? '—') }}</span>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small d-block">Address</label>
+                            <span class="fw-semibold">{{ $drivingTeam->address ?? '—' }}</span>
+                        </div>
+                        @if(!empty($drivingTeam->alternateMobile))
+                        <div class="col-12">
+                            <label class="text-muted small d-block">Alternate Mobiles</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach($drivingTeam->alternateMobile as $alt)
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="fas fa-phone me-1"></i>{{ $alt }}
+                                    </span>
+                                @endforeach
                             </div>
-                            <div class="col-md-8">
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header bg-light">
-                                                <h5 class="mb-0">Contact Information</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-12 mb-3">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-phone me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">Phone Number</small>
-                                                                <p class="mb-0">{{ $drivingTeam->phone_number ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12 mb-3">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-phone-alt me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">Emergency Number</small>
-                                                                <p class="mb-0">{{ $drivingTeam->emergency_number ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-map-marker-alt me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">Address</small>
-                                                                <p class="mb-0">{{ $drivingTeam->address ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header bg-light">
-                                                <h5 class="mb-0">License Information</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-12 mb-3">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-id-card me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">License Number</small>
-                                                                <p class="mb-0">{{ $drivingTeam->license_number ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12 mb-3">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-car me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">License Type</small>
-                                                                <p class="mb-0">{{ $drivingTeam->license_type ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-calendar-alt me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">License Expiry</small>
-                                                                <p class="mb-0">{{ $drivingTeam->license_expiry ? \Carbon\Carbon::parse($drivingTeam->license_expiry)->format('M d, Y') : 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
 
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header bg-light">
-                                                <h5 class="mb-0">Personal Information</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-12 mb-3">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-hashtag me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">Driver ID</small>
-                                                                <p class="mb-0">{{ $drivingTeam->driver_id ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12 mb-3">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-tint me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">Blood Group</small>
-                                                                <p class="mb-0">{{ $drivingTeam->blood_group ?: 'N/A' }}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="d-flex">
-                                                            <i class="fas fa-clock me-3 mt-1" style="width: 20px;"></i>
-                                                            <div>
-                                                                <small class="text-muted">Experience</small>
-                                                                <p class="mb-0">{{ $drivingTeam->experience ?: 'N/A' }} years</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header bg-light">
-                                                <h5 class="mb-0">Driver Status</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div class="d-flex justify-content-center">
-                                                            <div class="text-center">
-                                                                <div class="mb-2">
-                                                                    <i class="fas fa-{{ $drivingTeam->status == 'active' ? 'check-circle text-success' : 'times-circle text-secondary' }}" style="font-size: 3rem;"></i>
-                                                                </div>
-                                                                <h4 class="text-{{ $drivingTeam->status == 'active' ? 'success' : 'secondary' }}">{{ ucfirst($drivingTeam->status) }}</h4>
-                                                                <p class="text-muted">Driver is currently {{ $drivingTeam->status == 'active' ? 'active and available' : 'inactive' }} for assignments</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            {{-- Identity & Documents --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-id-card me-2"></i>Identity & Documents</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Qatar ID</label>
+                            <span class="fw-semibold">{{ $drivingTeam->qatarId ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Residence ID</label>
+                            <span class="fw-semibold">{{ $drivingTeam->residenceId ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Residence Permit Status</label>
+                            @if($drivingTeam->residencePermitStatus)
+                                <span class="badge bg-{{ $drivingTeam->residencePermitStatus === 'valid' ? 'success' : 'danger' }}">
+                                    {{ ucfirst($drivingTeam->residencePermitStatus) }}
+                                </span>
+                            @else
+                                <span class="fw-semibold">—</span>
+                            @endif
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Passport Number</label>
+                            <span class="fw-semibold">{{ $drivingTeam->passport ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Passport Expiry</label>
+                            <span class="fw-semibold">{{ $drivingTeam->passportExpiryDate ? $drivingTeam->passportExpiryDate->format('d M Y') : '—' }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Allocated Vehicles Section -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="section-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3 class="mb-0">
-                                <i class="fas fa-truck mr-2"></i>
-                                Allocated Vehicles ({{ $vehicles->count() }})
-                            </h3>
+            {{-- License Information --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-certificate me-2"></i>License Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Driving License No.</label>
+                            <span class="fw-semibold">{{ $drivingTeam->drivingLicenseNo ?? '—' }}</span>
                         </div>
-                        <div class="card-body">
-                            @if($vehicles->count() > 0)
-                                <div class="row">
-                                    @foreach($vehicles as $vehicle)
-                                    <div class="col-md-6 col-lg-4 mb-4">
-                                        <div class="card h-100 border-left-primary">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="me-3 position-relative">
-                                                        @if($vehicle->image_path)
-                                                            <img src="{{ asset($vehicle->image_path) }}" alt="{{ $vehicle->model }}" class="img-fluid rounded" style="width: 60px; height: 45px; object-fit: cover; cursor: pointer;" onclick="viewVehicleImage('{{ asset($vehicle->image_path) }}', '{{ $vehicle->model }} Photo', '{{ $vehicle->image_path }}')">
-                                                            <button class="btn btn-sm btn-outline-primary position-absolute" style="top: -5px; right: -5px; padding: 2px 6px;" onclick="viewVehicleImage('{{ asset($vehicle->image_path) }}', '{{ $vehicle->model }} Photo', '{{ $vehicle->image_path }}')">
-                                                                <i class="fas fa-eye" style="font-size: 10px;"></i>
-                                                            </button>
-                                                        @else
-                                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 45px;">
-                                                                <i class="fas fa-car text-muted"></i>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        <h6 class="mb-1">{{ $vehicle->model }}</h6>
-                                                        <small class="text-muted">{{ $vehicle->vehicle_number }}</small>
-                                                    </div>
-                                                </div>
-        
-                                                <div class="row g-2 mb-3">
-                                                    <div class="col-6">
-                                                        <small class="text-muted d-block">Brand</small>
-                                                        <span class="badge bg-secondary">{{ $vehicle->brand }}</span>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <small class="text-muted d-block">Status</small>
-                                                        <span class="badge {{ $vehicle->status == 'available' ? 'bg-success' : 'bg-warning' }}">
-                                                            {{ ucfirst($vehicle->status) }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <small class="text-muted d-block">Fuel Type</small>
-                                                        <span class="text-sm">{{ $vehicle->fuel_type ?: 'N/A' }}</span>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <small class="text-muted d-block">Odometer</small>
-                                                        <span class="text-sm">{{ $vehicle->current_odometer ?: 'N/A' }} km</span>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <small class="text-muted d-block">Color</small>
-                                                        <span class="text-sm">{{ $vehicle->color ?: 'N/A' }}</span>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <small class="text-muted d-block">Type</small>
-                                                        <span class="text-sm">{{ $vehicle->vehicle_type ?: 'N/A' }}</span>
-                                                    </div>
-                                                </div>
-        
-                                                <div class="border-top pt-2">
-                                                    <small class="text-muted d-block mb-1">Insurance & PUC</small>
-                                                    <div class="row g-1">
-                                                        <div class="col-6">
-                                                            <small class="text-muted">Insurance</small>
-                                                            <div class="text-xs">{{ $vehicle->insurance_valid_till ? date('M d, Y', strtotime(str_replace('/', '-', $vehicle->insurance_valid_till))) : 'N/A' }}</div>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <small class="text-muted">PUC</small>
-                                                            <div class="text-xs">{{ $vehicle->puc_expiry ? date('M d, Y', strtotime(str_replace('/', '-', $vehicle->puc_expiry))) : 'N/A' }}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">License Category</label>
+                            <span class="fw-semibold">{{ $drivingTeam->LicenseCategory ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">License Validity</label>
+                            <span class="fw-semibold">{{ $drivingTeam->LicenseValidity ? $drivingTeam->LicenseValidity->format('d M Y') : '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">License Expiry Date</label>
+                            @php
+                                $licExpiry = $drivingTeam->LicenseExpiryDate;
+                                $isExpired = $licExpiry && $licExpiry->isPast();
+                            @endphp
+                            <span class="fw-semibold {{ $isExpired ? 'text-danger' : '' }}">
+                                {{ $licExpiry ? $licExpiry->format('d M Y') : '—' }}
+                                @if($isExpired)<i class="fas fa-exclamation-triangle ms-1"></i>@endif
+                            </span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">License Number (Alt)</label>
+                            <span class="fw-semibold">{{ $drivingTeam->license_number ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">License Expiry (Alt)</label>
+                            <span class="fw-semibold">{{ $drivingTeam->license_expiry ? $drivingTeam->license_expiry->format('d M Y') : '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">License Type</label>
+                            <span class="fw-semibold">{{ $drivingTeam->license_type ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Expiry Alert</label>
+                            <span class="badge bg-{{ $drivingTeam->LicenseExpiryAlert ? 'warning' : 'secondary' }}">
+                                {{ $drivingTeam->LicenseExpiryAlert ? 'Enabled' : 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Vehicle Information --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-truck me-2"></i>Vehicle Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Brand & Model</label>
+                            <span class="fw-semibold">{{ $drivingTeam->vehicleBrandAndModel ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Manufacture Year</label>
+                            <span class="fw-semibold">{{ $drivingTeam->vehicleManufactureYear ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Registration No.</label>
+                            <span class="fw-semibold">{{ $drivingTeam->vehicleRegstrationNo ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Fuel Type</label>
+                            <span class="fw-semibold">{{ $drivingTeam->vehicleFuelType ?? '—' }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Heavy Vehicle Permit</label>
+                            @if($drivingTeam->heavyVehiclePermit)
+                                <span class="badge bg-{{ $drivingTeam->heavyVehiclePermit === 'valid' ? 'success' : 'danger' }}">
+                                    {{ ucfirst($drivingTeam->heavyVehiclePermit) }}
+                                </span>
                             @else
-                                <div class="text-center py-5">
-                                    <i class="fas fa-truck text-muted" style="font-size: 3rem;"></i>
-                                    <h5 class="mt-3 text-muted">No Vehicles Allocated</h5>
-                                    <p class="text-muted">This driver is not currently assigned to any vehicles.</p>
-                                    <a href="{{ route('admin.vehicle-monitoring.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus mr-2"></i> Assign Vehicle
-                                    </a>
-                                </div>
+                                <span class="fw-semibold">—</span>
+                            @endif
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <label class="text-muted small d-block">Insurance Expiry</label>
+                            @php
+                                $insExpiry = $drivingTeam->InsuranceExpiryDate;
+                                $insExpired = $insExpiry && $insExpiry->isPast();
+                            @endphp
+                            <span class="fw-semibold {{ $insExpired ? 'text-danger' : '' }}">
+                                {{ $insExpiry ? $insExpiry->format('d M Y') : '—' }}
+                                @if($insExpired)<i class="fas fa-exclamation-triangle ms-1"></i>@endif
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Gatepasses --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-passport me-2"></i>Gatepasses</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="text-muted small d-block">MIC Gatepass</label>
+                            @if($drivingTeam->MicGatepass)
+                                <span class="badge bg-{{ $drivingTeam->MicGatepass === 'yes' ? 'success' : 'danger' }} fs-6">
+                                    {{ ucfirst($drivingTeam->MicGatepass) }}
+                                </span>
+                            @else
+                                <span class="fw-semibold">—</span>
+                            @endif
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small d-block">RLC Gatepass</label>
+                            @if($drivingTeam->RlcGatepass)
+                                <span class="badge bg-{{ $drivingTeam->RlcGatepass === 'yes' ? 'success' : 'danger' }} fs-6">
+                                    {{ ucfirst($drivingTeam->RlcGatepass) }}
+                                </span>
+                            @else
+                                <span class="fw-semibold">—</span>
                             @endif
                         </div>
                     </div>
                 </div>
             </div>
+
+        </div>
+
+        {{-- RIGHT COLUMN --}}
+        <div class="col-lg-4">
+
+            {{-- Status Summary --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Status Summary</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Duty Status</td>
+                                <td>
+                                    <span class="badge bg-{{ $statusColor }}">
+                                        {{ ucwords(str_replace('_', ' ', $drivingTeam->status ?? 'off_duty')) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Active Status</td>
+                                <td>
+                                    <span class="badge bg-{{ ($drivingTeam->activeStatus ?? 'active') === 'active' ? 'primary' : 'danger' }}">
+                                        {{ ucfirst($drivingTeam->activeStatus ?? 'active') }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">KYC Status</td>
+                                <td>
+                                    <span class="badge bg-{{ $kycColor }}">
+                                        {{ ucwords(str_replace('_', ' ', $drivingTeam->kyc_status ?? 'pending')) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Created By</td>
+                                <td><span class="fw-semibold">{{ ucfirst($drivingTeam->createdBy ?? 'admin') }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Consent</td>
+                                <td>
+                                    <i class="fas fa-{{ $drivingTeam->consent ? 'check-circle text-success' : 'times-circle text-danger' }}"></i>
+                                    {{ $drivingTeam->consent ? 'Given' : 'Not Given' }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Terms & Conditions</td>
+                                <td>
+                                    <i class="fas fa-{{ $drivingTeam->TermsConditions ? 'check-circle text-success' : 'times-circle text-danger' }}"></i>
+                                    {{ $drivingTeam->TermsConditions ? 'Accepted' : 'Not Accepted' }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Joined</td>
+                                <td><span class="fw-semibold">{{ $drivingTeam->created_at ? $drivingTeam->created_at->format('d M Y') : '—' }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Last Updated</td>
+                                <td><span class="fw-semibold">{{ $drivingTeam->updated_at ? $drivingTeam->updated_at->diffForHumans() : '—' }}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Location --}}
+            @if($drivingTeam->latitude && $drivingTeam->longitude)
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Last Known Location</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="text-muted small d-block">Latitude</label>
+                        <span class="fw-semibold">{{ $drivingTeam->latitude }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="text-muted small d-block">Longitude</label>
+                        <span class="fw-semibold">{{ $drivingTeam->longitude }}</span>
+                    </div>
+                    @if($drivingTeam->recordedAt)
+                    <div>
+                        <label class="text-muted small d-block">Recorded At</label>
+                        <span class="fw-semibold">{{ $drivingTeam->recordedAt->format('d M Y, h:i A') }}</span>
+                    </div>
+                    @endif
+                    <a href="https://maps.google.com/?q={{ $drivingTeam->latitude }},{{ $drivingTeam->longitude }}"
+                       target="_blank" class="btn btn-outline-primary btn-sm mt-3 w-100">
+                        <i class="fas fa-map me-1"></i> View on Google Maps
+                    </a>
+                </div>
+            </div>
+            @endif
+
+            {{-- Documents --}}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Documents</h6>
+                </div>
+                <div class="card-body">
+
+                    {{-- Driving License --}}
+                    <div class="mb-3">
+                        <label class="text-muted small d-block mb-1">Driving License</label>
+                        @if($drivingTeam->drivingLicense)
+                            @php $ext = pathinfo($drivingTeam->drivingLicense, PATHINFO_EXTENSION); @endphp
+                            @if(in_array(strtolower($ext), ['jpg','jpeg','png','gif','webp']))
+                                <img src="{{ asset($drivingTeam->drivingLicense) }}"
+                                    alt="Driving License"
+                                    class="img-thumbnail w-100"
+                                    style="max-height:140px; object-fit:cover;"
+                                    onerror="this.style.display='none'">
+                            @else
+                                <a href="{{ asset($drivingTeam->drivingLicense) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-file-pdf me-1"></i> View License
+                                </a>
+                            @endif
+                        @else
+                            <span class="text-muted fst-italic">Not uploaded</span>
+                        @endif
+                    </div>
+
+                    {{-- Vehicle Insurance --}}
+                    <div class="mb-3">
+                        <label class="text-muted small d-block mb-1">Vehicle Insurance</label>
+                        @if($drivingTeam->vehicleInsurance)
+                            @php $ext2 = pathinfo($drivingTeam->vehicleInsurance, PATHINFO_EXTENSION); @endphp
+                            @if(in_array(strtolower($ext2), ['jpg','jpeg','png','gif','webp']))
+                                <img src="{{ asset($drivingTeam->vehicleInsurance) }}"
+                                    alt="Vehicle Insurance"
+                                    class="img-thumbnail w-100"
+                                    style="max-height:140px; object-fit:cover;"
+                                    onerror="this.style.display='none'">
+                            @else
+                                <a href="{{ asset($drivingTeam->vehicleInsurance) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-file-pdf me-1"></i> View Insurance
+                                </a>
+                            @endif
+                        @else
+                            <span class="text-muted fst-italic">Not uploaded</span>
+                        @endif
+                    </div>
+
+                    {{-- Signature --}}
+                    <div>
+                        <label class="text-muted small d-block mb-1">Signature</label>
+                        @if($drivingTeam->signature)
+                            <img src="{{ asset($drivingTeam->signature) }}"
+                                alt="Signature"
+                                class="img-thumbnail w-100"
+                                style="max-height:80px; object-fit:contain; background:#f8f9fa;"
+                                onerror="this.style.display='none'">
+                        @else
+                            <span class="text-muted fst-italic">Not uploaded</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-</div>
 
-<!-- Image View Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="imageModalLabel">Image Viewer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img id="modalImage" src="" alt="" class="img-fluid" style="max-height: 70vh; max-width: 100%;">
-            </div>
-            <div class="modal-footer">
-                <a id="downloadBtn" href="" download class="btn btn-success">
-                    <i class="fas fa-download me-2"></i>Download
-                </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+    {{-- Action Buttons at Bottom --}}
+    <div class="d-flex gap-3 justify-content-between align-items-center mb-5 p-3 bg-light rounded">
+        <div>
+            <a href="{{ route('admin.driving-team.index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Drivers
+            </a>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.driving-team.edit', $drivingTeam->id) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> Edit Driver
+            </a>
+            <form action="{{ route('admin.driving-team.destroy', $drivingTeam->id) }}" method="POST"
+                onsubmit="return confirm('Are you sure you want to delete driver {{ addslashes($drivingTeam->name) }}? This action cannot be undone.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i> Delete Driver
+                </button>
+            </form>
         </div>
     </div>
+
 </div>
-
-<script>
-// Image View Modal Functionality
-function viewImage(imageSrc, title, downloadPath) {
-    document.getElementById('modalImage').src = imageSrc;
-    document.getElementById('modalImage').alt = title;
-    document.getElementById('imageModalLabel').textContent = title;
-    document.getElementById('downloadBtn').href = imageSrc;
-    document.getElementById('downloadBtn').download = downloadPath.split('/').pop();
-
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-    modal.show();
-}
-
-// Vehicle Image View Modal Functionality
-function viewVehicleImage(imageSrc, title, downloadPath) {
-    document.getElementById('modalImage').src = imageSrc;
-    document.getElementById('modalImage').alt = title;
-    document.getElementById('imageModalLabel').textContent = title;
-    document.getElementById('downloadBtn').href = imageSrc;
-    document.getElementById('downloadBtn').download = downloadPath.split('/').pop();
-
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-    modal.show();
-}
-</script>
 @endsection

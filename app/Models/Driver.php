@@ -9,13 +9,45 @@ use Laravel\Sanctum\HasApiTokens;
 class Driver extends Model
 {
     use HasApiTokens;
-    
+
     protected $fillable = [
         'driver_id',
         'name',
+        'email',
+        'nationality',
+        'countryLevel',
+        'dob',
         'blood_group',
         'phone',
+        'alternateMobile',
+        'franchise',
         'emergency_phone',
+        'emergencyRelation',
+        'residenceId',
+        'passport',
+        'passportExpiryDate',
+        'residencePermitStatus',
+        'LicenseCategory',
+        'LicenseValidity',
+        'vehicleBrandAndModel',
+        'vehicleManufactureYear',
+        'vehicleRegstrationNo',
+        'vehicleFuelType',
+        'heavyVehiclePermit',
+        'InsuranceExpiryDate',
+        'LicenseExpiryDate',
+        'LicenseExpiryAlert',
+        'drivingLicenseNo',
+        'driverType',
+        'driverPhoto',
+        'signature',
+        'drivingLicense',
+        'vehicleInsurance',
+        'consent',
+        'TermsConditions',
+        'RlcGatepass',
+        'MicGatepass',
+        'qatarId',
         'address',
         'license_number',
         'license_expiry',
@@ -23,17 +55,87 @@ class Driver extends Model
         'total_trips',
         'experience_years',
         'status',
-        'avatar_path'
+        'activeStatus',
+        'kyc_status',
+        'createdBy',
+        'avatar_path',
+        'latitude',
+        'longitude',
+        'recordedAt',
     ];
 
     protected $casts = [
-        'license_expiry' => 'date',
-        'total_trips' => 'integer',
-        'experience_years' => 'integer'
+        'dob'                  => 'date',
+        'license_expiry'       => 'date',
+        'LicenseExpiryDate'    => 'date',
+        'LicenseValidity'      => 'date',
+        'passportExpiryDate'   => 'date',
+        'InsuranceExpiryDate'  => 'date',
+        'recordedAt'           => 'datetime',
+        'alternateMobile'      => 'array',
+        'LicenseExpiryAlert'   => 'boolean',
+        'consent'              => 'boolean',
+        'TermsConditions'      => 'boolean',
+        'total_trips'          => 'integer',
+        'experience_years'     => 'integer',
+        'latitude'             => 'decimal:7',
+        'longitude'            => 'decimal:7',
     ];
 
+    /**
+     * Boot the model — auto-generate driver_id.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($driver) {
+            if (empty($driver->driver_id)) {
+                $driver->driver_id = self::generateDriverId();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique driver ID: DRV001, DRV002, …
+     */
+    public static function generateDriverId(): string
+    {
+        $last = self::orderBy('id', 'desc')->first();
+        $lastNumber = 0;
+
+        if ($last && !empty($last->driver_id)) {
+            $lastNumber = (int) substr($last->driver_id, 3);
+        }
+
+        return 'DRV' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get the vehicles for this driver.
+     */
     public function vehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class);
+    }
+
+    /**
+     * Get the full URL of the driver's avatar.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar_path ? asset($this->avatar_path) : null;
+    }
+
+    /** Scope: drivers currently on duty */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'on_duty');
+    }
+
+    /** Scope: KYC-approved drivers */
+    public function scopeKycApproved($query)
+    {
+        return $query->where('kyc_status', 'approved');
     }
 }

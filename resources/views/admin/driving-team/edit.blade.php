@@ -1,575 +1,592 @@
-@extends('admin.layout.master')
+@extends('admin.layouts.app')
 
 @section('title', 'Edit Driver')
 
 @section('content')
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 fw-bold">Edit Driver — {{ $drivingTeam->name }}</h4>
+        <a href="{{ route('admin.driving-team.index') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
 
-    body {
-        font-family: 'IBM Plex Sans', sans-serif;
-        background: #E5EAF2;
-    }
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    .dashboard-wrapper {
-        display: flex;
-        min-height: 100vh;
-        margin-left: 70px;
-        background: #E5EAF2;
-    }
+    <form action="{{ route('admin.driving-team.update', $drivingTeam->id) }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
 
-    .form-container-wrapper {
-        width: 100%;
-    }
-
-    /* Top Navbar */
-    .top-navbar {
-        height: 60px;
-        background: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 40px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .search-container {
-        position: relative;
-        flex: 0 0 353px;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #666262;
-        font-size: 18px;
-    }
-
-    .search-input {
-        width: 100%;
-        height: 60px;
-        border: none;
-        border-radius: 30px;
-        padding: 10px 20px 10px 55px;
-        font-size: 18px;
-        font-weight: 700;
-        color: #666262;
-        background: #fff;
-    }
-
-    .search-input::placeholder {
-        color: #666262;
-    }
-
-    .task-dropdown {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 11px 0;
-        font-size: 16px;
-        color: #000;
-        cursor: pointer;
-        border: 1px solid #6C6C6C;
-        border-radius: 10px;
-        padding: 11px 20px;
-    }
-
-    .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .btn-main-account {
-        background: #003B67;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 13px 46px;
-        font-size: 18px;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .icon-btn {
-        width: 50px;
-        height: 48px;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .icon-btn i {
-        font-size: 22px;
-        color: #000;
-    }
-
-    .user-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: #ccc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-
-    .user-avatar i {
-        font-size: 30px;
-        color: #666;
-    }
-
-    /* Form Container */
-    .form-container {
-        padding: 50px 40px;
-        width: 100%;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    /* Page Header */
-    .page-header {
-        background: #fff;
-        border: 1px solid #003B67;
-        border-radius: 10px;
-        padding: 18px 30px;
-        margin-bottom: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .back-btn {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        font-size: 24px;
-        color: #003B67;
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-    }
-
-    .page-header h1 {
-        font-size: 24px;
-        font-weight: 500;
-        color: #003B67;
-        margin: 0;
-    }
-
-    .filter-icon {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        font-size: 22px;
-        color: #003B67;
-    }
-
-    /* Form Card */
-    .driver-form {
-        background: #fff;
-        border: 1px solid #003B67;
-        border-radius: 20px;
-        padding: 40px;
-    }
-
-    /* Section Header */
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-
-    .section-header i {
-        font-size: 24px;
-        color: #003B67;
-    }
-
-    .section-header h2 {
-        font-size: 20px;
-        font-weight: 500;
-        color: #000;
-        margin: 0;
-    }
-
-    /* Form Grid */
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 25px 40px;
-        margin-bottom: 40px;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .form-group label {
-        font-size: 16px;
-        font-weight: 500;
-        color: #000;
-        margin-bottom: 10px;
-    }
-
-    .required {
-        color: #ED5A68;
-    }
-
-    .form-group input,
-    .form-group select {
-        height: 45px;
-        border: 1px solid #000;
-        border-radius: 10px;
-        padding: 8px 17px;
-        font-size: 14px;
-        font-weight: 400;
-        color: #000;
-        background: #fff;
-    }
-
-    .form-group input::placeholder {
-        color: #999;
-    }
-
-    /* Attach Documents Section */
-    .attach-section {
-        margin-top: 40px;
-        padding-top: 30px;
-        border-top: 1px solid #ddd;
-    }
-
-    .attach-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-
-    .attach-header i {
-        font-size: 24px;
-        color: #000;
-    }
-
-    .attach-header h3 {
-        font-size: 20px;
-        font-weight: 500;
-        color: #000;
-        margin: 0;
-    }
-
-    .file-upload-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        margin-bottom: 30px;
-    }
-
-    .file-upload-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .file-upload-group label {
-        font-size: 16px;
-        font-weight: 500;
-        color: #000;
-        margin-bottom: 10px;
-    }
-
-    .file-input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .file-choose-btn {
-        height: 40px;
-        padding: 5px 20px;
-        border: 1px solid #6C6C6C;
-        border-radius: 8px;
-        background: #fff;
-        font-size: 14px;
-        color: #000;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .file-input-wrapper input[type="file"] {
-        display: none;
-    }
-
-    .file-name {
-        font-size: 14px;
-        color: #666;
-    }
-
-    .file-preview {
-        display: flex;
-        gap: 15px;
-        margin-top: 15px;
-    }
-
-    .preview-item {
-        width: 120px;
-        height: 120px;
-        border: 1px solid #6C6C6C;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f5f5f5;
-        overflow: hidden;
-    }
-
-    .preview-item img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: cover;
-    }
-
-    .preview-item .placeholder {
-        color: #666;
-        font-size: 12px;
-        text-align: center;
-    }
-
-    /* Submit Button */
-    .submit-section {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 30px;
-    }
-
-    .btn-submit {
-        height: 50px;
-        padding: 0 50px;
-        border-radius: 10px;
-        border: none;
-        background: #317FF1;
-        color: #fff;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .btn-submit:hover {
-        background: #2669cc;
-    }
-</style>
-
-<div class="dashboard-wrapper">
-<div class="form-container-wrapper">
-   
-    <!-- Form Container -->
-    <div class="form-container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="header-left">
-                <a href="{{ route('admin.driving-team.index') }}" class="back-btn">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-                <h1>Edit Driver</h1>
+        {{-- SECTION 1: Personal Information --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h6>
             </div>
-            <button class="filter-icon">
-                <i class="fas fa-filter"></i>
-            </button>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                            value="{{ old('name', $drivingTeam->name) }}" required>
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                            value="{{ old('email', $drivingTeam->email) }}" required>
+                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Nationality</label>
+                        <input type="text" name="nationality" class="form-control @error('nationality') is-invalid @enderror"
+                            value="{{ old('nationality', $drivingTeam->nationality) }}">
+                        @error('nationality')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Country Level</label>
+                        <select name="countryLevel" class="form-select @error('countryLevel') is-invalid @enderror">
+                            <option value="local" {{ old('countryLevel', $drivingTeam->countryLevel) == 'local' ? 'selected' : '' }}>Local</option>
+                            <option value="international" {{ old('countryLevel', $drivingTeam->countryLevel) == 'international' ? 'selected' : '' }}>International</option>
+                        </select>
+                        @error('countryLevel')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control @error('dob') is-invalid @enderror"
+                            value="{{ old('dob', $drivingTeam->dob ? $drivingTeam->dob->format('Y-m-d') : '') }}">
+                        @error('dob')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Blood Group</label>
+                        <select name="blood_group" class="form-select @error('blood_group') is-invalid @enderror">
+                            <option value="">-- Select --</option>
+                            @foreach(['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bg)
+                                <option value="{{ $bg }}" {{ old('blood_group', $drivingTeam->blood_group) == $bg ? 'selected' : '' }}>{{ $bg }}</option>
+                            @endforeach
+                        </select>
+                        @error('blood_group')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
+                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
+                            value="{{ old('phone', $drivingTeam->phone) }}" required>
+                        @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Emergency Phone <span class="text-danger">*</span></label>
+                        <input type="text" name="emergency_phone" class="form-control @error('emergency_phone') is-invalid @enderror"
+                            value="{{ old('emergency_phone', $drivingTeam->emergency_phone) }}" required>
+                        @error('emergency_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Emergency Relation</label>
+                        <input type="text" name="emergencyRelation" class="form-control @error('emergencyRelation') is-invalid @enderror"
+                            value="{{ old('emergencyRelation', $drivingTeam->emergencyRelation) }}">
+                        @error('emergencyRelation')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Driver Type</label>
+                        <input type="text" name="driverType" class="form-control @error('driverType') is-invalid @enderror"
+                            value="{{ old('driverType', $drivingTeam->driverType) }}"
+                            placeholder="e.g. Full-time, Part-time, Contractor">
+                        @error('driverType')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
+                        <textarea name="address" class="form-control @error('address') is-invalid @enderror" rows="2" required>{{ old('address', $drivingTeam->address) }}</textarea>
+                        @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    {{-- Alternate Mobile --}}
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Alternate Mobile Numbers</label>
+                        <div id="alternateMobileContainer">
+                            @php
+                                $altMobiles = old('alternateMobile', $drivingTeam->alternateMobile ?? []);
+                                if(empty($altMobiles)) $altMobiles = [''];
+                            @endphp
+                            @foreach($altMobiles as $index => $altNum)
+                            <div class="input-group mb-2 alternate-mobile-row">
+                                <input type="text" name="alternateMobile[]"
+                                    class="form-control"
+                                    value="{{ $altNum }}"
+                                    placeholder="Alternate mobile number">
+                                @if($index === 0)
+                                    <button type="button" class="btn btn-success" onclick="addAlternateMobile()">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                @else
+                                    <button type="button" class="btn btn-danger" onclick="removeAlternateMobile(this)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                @endif
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Driver Form -->
-        <form class="driver-form" method="POST" action="{{ route('admin.driving-team.update', $drivingTeam->id) }}" enctype="multipart/form-data">
-            @csrf
-            @method('PUT')
-
-            <!-- Driver Details Section -->
-            <div class="section-header">
-                <i class="fas fa-id-card"></i>
-                <h2>Driver Details</h2>
+        {{-- SECTION 2: Identity & Documents --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-id-card me-2"></i>Identity & Documents</h6>
             </div>
-
-            <div class="form-grid">
-                <div class="form-group">
-                    <label><i class="fas fa-user" style="margin-right: 8px;"></i>Driver Name<span class="required">*</span></label>
-                    <input type="text" name="name" placeholder="e.g., John Doe" value="{{ old('name', $drivingTeam->name) }}" required>
-                    @error('name')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-id-badge" style="margin-right: 8px;"></i>Driver ID<span class="required">*</span></label>
-                    <input type="text" name="driver_id" placeholder="e.g., DRV001" value="{{ old('driver_id', $drivingTeam->driver_id) }}" required>
-                    @error('driver_id')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-phone" style="margin-right: 8px;"></i>Phone Number<span class="required">*</span></label>
-                    <input type="tel" name="phone_number" placeholder="e.g., +1 234 567 8900" value="{{ old('phone_number', $drivingTeam->phone_number) }}" required>
-                    @error('phone_number')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-phone-alt" style="margin-right: 8px;"></i>Emergency Number<span class="required">*</span></label>
-                    <input type="tel" name="emergency_number" placeholder="e.g., +1 234 567 8901" value="{{ old('emergency_number', $drivingTeam->emergency_number) }}" required>
-                    @error('emergency_number')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt" style="margin-right: 8px;"></i>Address<span class="required">*</span></label>
-                    <input type="text" name="address" placeholder="e.g., 123 Main St, City, State 12345" value="{{ old('address', $drivingTeam->address) }}" required>
-                    @error('address')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-tint" style="margin-right: 8px;"></i>Blood Group<span class="required">*</span></label>
-                    <input type="text" name="blood_group" placeholder="e.g., O+, A-, B+" value="{{ old('blood_group', $drivingTeam->blood_group) }}" required>
-                    @error('blood_group')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-id-card" style="margin-right: 8px;"></i>License Number<span class="required">*</span></label>
-                    <input type="text" name="license_number" placeholder="e.g., DL123456789" value="{{ old('license_number', $drivingTeam->license_number) }}" required>
-                    @error('license_number')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-calendar-alt" style="margin-right: 8px;"></i>License Expiry<span class="required">*</span></label>
-                    <input type="date" name="license_expiry" value="{{ old('license_expiry', $drivingTeam->license_expiry ? $drivingTeam->license_expiry->format('Y-m-d') : '') }}" required>
-                    @error('license_expiry')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-certificate" style="margin-right: 8px;"></i>License Type<span class="required">*</span></label>
-                    <input type="text" name="license_type" placeholder="e.g., Commercial Driver License" value="{{ old('license_type', $drivingTeam->license_type) }}" required>
-                    @error('license_type')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-briefcase" style="margin-right: 8px;"></i>Experience<span class="required">*</span></label>
-                    <input type="text" name="experience" placeholder="e.g., 5 years" value="{{ old('experience', $drivingTeam->experience) }}" required>
-                    @error('experience')
-                        <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                    @enderror
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Qatar ID</label>
+                        <input type="text" name="qatarId" class="form-control @error('qatarId') is-invalid @enderror"
+                            value="{{ old('qatarId', $drivingTeam->qatarId) }}">
+                        @error('qatarId')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Residence ID</label>
+                        <input type="text" name="residenceId" class="form-control @error('residenceId') is-invalid @enderror"
+                            value="{{ old('residenceId', $drivingTeam->residenceId) }}">
+                        @error('residenceId')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Residence Permit Status</label>
+                        <select name="residencePermitStatus" class="form-select @error('residencePermitStatus') is-invalid @enderror">
+                            <option value="">-- Select --</option>
+                            <option value="valid" {{ old('residencePermitStatus', $drivingTeam->residencePermitStatus) == 'valid' ? 'selected' : '' }}>Valid</option>
+                            <option value="expired" {{ old('residencePermitStatus', $drivingTeam->residencePermitStatus) == 'expired' ? 'selected' : '' }}>Expired</option>
+                        </select>
+                        @error('residencePermitStatus')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Passport Number</label>
+                        <input type="text" name="passport" class="form-control @error('passport') is-invalid @enderror"
+                            value="{{ old('passport', $drivingTeam->passport) }}">
+                        @error('passport')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Passport Expiry Date</label>
+                        <input type="date" name="passportExpiryDate" class="form-control @error('passportExpiryDate') is-invalid @enderror"
+                            value="{{ old('passportExpiryDate', $drivingTeam->passportExpiryDate ? $drivingTeam->passportExpiryDate->format('Y-m-d') : '') }}">
+                        @error('passportExpiryDate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Attach Scan Documents Section -->
-            <div class="attach-section">
-                <div class="attach-header">
-                    <i class="fas fa-paperclip"></i>
-                    <h3>Attach Scan Documents</h3>
-                </div>
-
-                <div class="file-upload-grid">
-                    <div class="file-upload-group">
-                        <label>Driver's Photo</label>
-                        <div class="file-input-wrapper">
-                            <label for="driver-photo" class="file-choose-btn">Choose File</label>
-                            <input type="file" id="driver-photo" name="driver_photo" accept="image/*" onchange="updateFileName(this, 'photo-name')">
-                            <span class="file-name" id="photo-name">{{ $drivingTeam->driver_photo ? 'File Selected' : 'No File Chosen' }}</span>
+        {{-- SECTION 3: License Information --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-certificate me-2"></i>License Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Driving License No.</label>
+                        <input type="text" name="drivingLicenseNo" class="form-control @error('drivingLicenseNo') is-invalid @enderror"
+                            value="{{ old('drivingLicenseNo', $drivingTeam->drivingLicenseNo) }}">
+                        @error('drivingLicenseNo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">License Category</label>
+                        <input type="text" name="LicenseCategory" class="form-control @error('LicenseCategory') is-invalid @enderror"
+                            value="{{ old('LicenseCategory', $drivingTeam->LicenseCategory) }}"
+                            placeholder="e.g. A, B, C, D">
+                        @error('LicenseCategory')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">License Validity</label>
+                        <input type="date" name="LicenseValidity" class="form-control @error('LicenseValidity') is-invalid @enderror"
+                            value="{{ old('LicenseValidity', $drivingTeam->LicenseValidity ? $drivingTeam->LicenseValidity->format('Y-m-d') : '') }}">
+                        @error('LicenseValidity')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">License Expiry Date</label>
+                        <input type="date" name="LicenseExpiryDate" class="form-control @error('LicenseExpiryDate') is-invalid @enderror"
+                            value="{{ old('LicenseExpiryDate', $drivingTeam->LicenseExpiryDate ? $drivingTeam->LicenseExpiryDate->format('Y-m-d') : '') }}">
+                        @error('LicenseExpiryDate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">License Number (Alt)</label>
+                        <input type="text" name="license_number" class="form-control @error('license_number') is-invalid @enderror"
+                            value="{{ old('license_number', $drivingTeam->license_number) }}">
+                        @error('license_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">License Expiry (Alt)</label>
+                        <input type="date" name="license_expiry" class="form-control @error('license_expiry') is-invalid @enderror"
+                            value="{{ old('license_expiry', $drivingTeam->license_expiry ? $drivingTeam->license_expiry->format('Y-m-d') : '') }}">
+                        @error('license_expiry')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">License Type</label>
+                        <input type="text" name="license_type" class="form-control @error('license_type') is-invalid @enderror"
+                            value="{{ old('license_type', $drivingTeam->license_type) }}"
+                            placeholder="e.g. Commercial, Private">
+                        @error('license_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Experience (Years)</label>
+                        <input type="number" name="experience_years" class="form-control @error('experience_years') is-invalid @enderror"
+                            value="{{ old('experience_years', $drivingTeam->experience_years) }}" min="0" max="60">
+                        @error('experience_years')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" name="LicenseExpiryAlert" id="LicenseExpiryAlert" value="1"
+                                {{ old('LicenseExpiryAlert', $drivingTeam->LicenseExpiryAlert) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="LicenseExpiryAlert">
+                                Enable License Expiry Alert
+                            </label>
                         </div>
-                        <small style="color: #666; font-size: 12px;">Accepted formats: JPEG, PNG, JPG, GIF. Maximum size: 5MB</small>
-                        @error('driver_photo')
-                            <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                        @enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 4: Vehicle Information --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="fas fa-truck me-2"></i>Vehicle Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Vehicle Brand & Model</label>
+                        <input type="text" name="vehicleBrandAndModel" class="form-control @error('vehicleBrandAndModel') is-invalid @enderror"
+                            value="{{ old('vehicleBrandAndModel', $drivingTeam->vehicleBrandAndModel) }}">
+                        @error('vehicleBrandAndModel')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Manufacture Year</label>
+                        <input type="text" name="vehicleManufactureYear" class="form-control @error('vehicleManufactureYear') is-invalid @enderror"
+                            value="{{ old('vehicleManufactureYear', $drivingTeam->vehicleManufactureYear) }}"
+                            placeholder="e.g. 2020">
+                        @error('vehicleManufactureYear')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Registration No.</label>
+                        <input type="text" name="vehicleRegstrationNo" class="form-control @error('vehicleRegstrationNo') is-invalid @enderror"
+                            value="{{ old('vehicleRegstrationNo', $drivingTeam->vehicleRegstrationNo) }}">
+                        @error('vehicleRegstrationNo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Fuel Type</label>
+                        <select name="vehicleFuelType" class="form-select @error('vehicleFuelType') is-invalid @enderror">
+                            <option value="">-- Select --</option>
+                            @foreach(['Petrol','Diesel','Electric','Hybrid','CNG','LPG'] as $fuel)
+                                <option value="{{ $fuel }}" {{ old('vehicleFuelType', $drivingTeam->vehicleFuelType) == $fuel ? 'selected' : '' }}>{{ $fuel }}</option>
+                            @endforeach
+                        </select>
+                        @error('vehicleFuelType')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Heavy Vehicle Permit</label>
+                        <select name="heavyVehiclePermit" class="form-select @error('heavyVehiclePermit') is-invalid @enderror">
+                            <option value="">-- Select --</option>
+                            <option value="valid" {{ old('heavyVehiclePermit', $drivingTeam->heavyVehiclePermit) == 'valid' ? 'selected' : '' }}>Valid</option>
+                            <option value="expired" {{ old('heavyVehiclePermit', $drivingTeam->heavyVehiclePermit) == 'expired' ? 'selected' : '' }}>Expired</option>
+                        </select>
+                        @error('heavyVehiclePermit')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Insurance Expiry Date</label>
+                        <input type="date" name="InsuranceExpiryDate" class="form-control @error('InsuranceExpiryDate') is-invalid @enderror"
+                            value="{{ old('InsuranceExpiryDate', $drivingTeam->InsuranceExpiryDate ? $drivingTeam->InsuranceExpiryDate->format('Y-m-d') : '') }}">
+                        @error('InsuranceExpiryDate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 5: Gatepasses --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-passport me-2"></i>Gatepasses</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">MIC Gatepass</label>
+                        <select name="MicGatepass" class="form-select @error('MicGatepass') is-invalid @enderror">
+                            <option value="">-- Select --</option>
+                            <option value="yes" {{ old('MicGatepass', $drivingTeam->MicGatepass) == 'yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="no" {{ old('MicGatepass', $drivingTeam->MicGatepass) == 'no' ? 'selected' : '' }}>No</option>
+                        </select>
+                        @error('MicGatepass')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">RLC Gatepass</label>
+                        <select name="RlcGatepass" class="form-select @error('RlcGatepass') is-invalid @enderror">
+                            <option value="">-- Select --</option>
+                            <option value="yes" {{ old('RlcGatepass', $drivingTeam->RlcGatepass) == 'yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="no" {{ old('RlcGatepass', $drivingTeam->RlcGatepass) == 'no' ? 'selected' : '' }}>No</option>
+                        </select>
+                        @error('RlcGatepass')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 6: Status & KYC --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="fas fa-toggle-on me-2"></i>Status & KYC</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Duty Status</label>
+                        <select name="status" class="form-select @error('status') is-invalid @enderror">
+                            <option value="on_duty" {{ old('status', $drivingTeam->status) == 'on_duty' ? 'selected' : '' }}>On Duty</option>
+                            <option value="off_duty" {{ old('status', $drivingTeam->status) == 'off_duty' ? 'selected' : '' }}>Off Duty</option>
+                            <option value="on_leave" {{ old('status', $drivingTeam->status) == 'on_leave' ? 'selected' : '' }}>On Leave</option>
+                        </select>
+                        @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Active Status</label>
+                        <select name="activeStatus" class="form-select @error('activeStatus') is-invalid @enderror">
+                            <option value="active" {{ old('activeStatus', $drivingTeam->activeStatus) == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ old('activeStatus', $drivingTeam->activeStatus) == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                        @error('activeStatus')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">KYC Status</label>
+                        <select name="kyc_status" class="form-select @error('kyc_status') is-invalid @enderror">
+                            @foreach(['pending','under_review','reverification_needed','approved','rejected'] as $kyc)
+                                <option value="{{ $kyc }}" {{ old('kyc_status', $drivingTeam->kyc_status) == $kyc ? 'selected' : '' }}>
+                                    {{ ucwords(str_replace('_', ' ', $kyc)) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('kyc_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 7: Document Uploads --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0"><i class="fas fa-upload me-2"></i>Document Uploads</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+
+                    {{-- Driver Photo --}}
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Driver Photo</label>
+                        @if($drivingTeam->avatar_path || $drivingTeam->driverPhoto)
+                            <div class="mb-2">
+                                <img src="{{ asset($drivingTeam->avatar_path ?? $drivingTeam->driverPhoto) }}"
+                                    alt="Current Driver Photo"
+                                    class="img-thumbnail"
+                                    style="max-height:120px; max-width:100%; object-fit:cover;"
+                                    onerror="this.style.display='none'">
+                                <p class="text-muted small mt-1"><i class="fas fa-image me-1"></i>Current photo</p>
+                            </div>
+                        @endif
+                        <input type="file" name="driverPhoto" id="driverPhotoInput"
+                            class="form-control @error('driverPhoto') is-invalid @enderror"
+                            accept="image/*"
+                            onchange="previewImage(this, 'driverPhotoPreview')">
+                        @error('driverPhoto')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <img id="driverPhotoPreview" src="#" alt="New photo preview"
+                            class="img-thumbnail mt-2 d-none" style="max-height:120px;">
+                        <small class="text-muted d-block mt-1">Upload new to replace current</small>
                     </div>
 
-                    <div class="file-upload-group">
-                        <label>Driver's License Photo</label>
-                        <div class="file-input-wrapper">
-                            <label for="license-photo" class="file-choose-btn">Choose File</label>
-                            <input type="file" id="license-photo" name="license_photo" accept="image/*" onchange="updateFileName(this, 'license-name')">
-                            <span class="file-name" id="license-name">{{ $drivingTeam->license_photo ? 'File Selected' : 'No File Chosen' }}</span>
+                    {{-- Driving License --}}
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Driving License</label>
+                        @if($drivingTeam->drivingLicense)
+                            <div class="mb-2">
+                                @php $ext = pathinfo($drivingTeam->drivingLicense, PATHINFO_EXTENSION); @endphp
+                                @if(in_array(strtolower($ext), ['jpg','jpeg','png','gif','webp']))
+                                    <img src="{{ asset($drivingTeam->drivingLicense) }}"
+                                        alt="Driving License"
+                                        class="img-thumbnail"
+                                        style="max-height:120px; max-width:100%; object-fit:cover;"
+                                        onerror="this.style.display='none'">
+                                @else
+                                    <a href="{{ asset($drivingTeam->drivingLicense) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-file-pdf me-1"></i>View Current License
+                                    </a>
+                                @endif
+                                <p class="text-muted small mt-1">{{ basename($drivingTeam->drivingLicense) }}</p>
+                            </div>
+                        @endif
+                        <input type="file" name="drivingLicense" id="drivingLicenseInput"
+                            class="form-control @error('drivingLicense') is-invalid @enderror"
+                            accept="image/*,.pdf"
+                            onchange="previewFile(this, 'drivingLicensePreview', 'drivingLicenseName')">
+                        @error('drivingLicense')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <img id="drivingLicensePreview" src="#" alt="License preview"
+                            class="img-thumbnail mt-2 d-none" style="max-height:120px;">
+                        <span id="drivingLicenseName" class="text-muted small mt-1 d-none"></span>
+                        <small class="text-muted d-block mt-1">Upload new to replace current</small>
+                    </div>
+
+                    {{-- Vehicle Insurance --}}
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Vehicle Insurance</label>
+                        @if($drivingTeam->vehicleInsurance)
+                            <div class="mb-2">
+                                @php $ext2 = pathinfo($drivingTeam->vehicleInsurance, PATHINFO_EXTENSION); @endphp
+                                @if(in_array(strtolower($ext2), ['jpg','jpeg','png','gif','webp']))
+                                    <img src="{{ asset($drivingTeam->vehicleInsurance) }}"
+                                        alt="Vehicle Insurance"
+                                        class="img-thumbnail"
+                                        style="max-height:120px; max-width:100%; object-fit:cover;"
+                                        onerror="this.style.display='none'">
+                                @else
+                                    <a href="{{ asset($drivingTeam->vehicleInsurance) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-file-pdf me-1"></i>View Current Insurance
+                                    </a>
+                                @endif
+                                <p class="text-muted small mt-1">{{ basename($drivingTeam->vehicleInsurance) }}</p>
+                            </div>
+                        @endif
+                        <input type="file" name="vehicleInsurance" id="vehicleInsuranceInput"
+                            class="form-control @error('vehicleInsurance') is-invalid @enderror"
+                            accept="image/*,.pdf"
+                            onchange="previewFile(this, 'vehicleInsurancePreview', 'vehicleInsuranceName')">
+                        @error('vehicleInsurance')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <img id="vehicleInsurancePreview" src="#" alt="Insurance preview"
+                            class="img-thumbnail mt-2 d-none" style="max-height:120px;">
+                        <span id="vehicleInsuranceName" class="text-muted small mt-1 d-none"></span>
+                        <small class="text-muted d-block mt-1">Upload new to replace current</small>
+                    </div>
+
+                    {{-- Signature --}}
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Signature</label>
+                        @if($drivingTeam->signature)
+                            <div class="mb-2">
+                                <img src="{{ asset($drivingTeam->signature) }}"
+                                    alt="Current Signature"
+                                    class="img-thumbnail"
+                                    style="max-height:120px; max-width:100%; object-fit:cover;"
+                                    onerror="this.style.display='none'">
+                                <p class="text-muted small mt-1"><i class="fas fa-signature me-1"></i>Current signature</p>
+                            </div>
+                        @endif
+                        <input type="file" name="signature" id="signatureInput"
+                            class="form-control @error('signature') is-invalid @enderror"
+                            accept="image/*"
+                            onchange="previewImage(this, 'signaturePreview')">
+                        @error('signature')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <img id="signaturePreview" src="#" alt="Signature preview"
+                            class="img-thumbnail mt-2 d-none" style="max-height:120px;">
+                        <small class="text-muted d-block mt-1">Upload new to replace current</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 8: Consent & Agreement --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light text-dark border-bottom">
+                <h6 class="mb-0"><i class="fas fa-check-square me-2"></i>Consent & Agreement</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="consent" id="consent" value="1"
+                                {{ old('consent', $drivingTeam->consent) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="consent">
+                                Driver has given consent
+                            </label>
                         </div>
-                        <small style="color: #666; font-size: 12px;">Accepted formats: JPEG, PNG, JPG, GIF. Maximum size: 5MB</small>
-                        @error('license_photo')
-                            <span style="color: #ED5A68; font-size: 12px;">{{ $message }}</span>
-                        @enderror
                     </div>
-                </div>
-
-                <div class="file-preview">
-                    <div class="preview-item" id="photo-preview">
-                        @if($drivingTeam->driver_photo)
-                            <img src="{{ asset($drivingTeam->driver_photo) }}" alt="Current Driver Photo">
-                        @else
-                            <div class="placeholder">No Photo</div>
-                        @endif
-                    </div>
-                    <div class="preview-item" id="license-preview">
-                        @if($drivingTeam->license_photo)
-                            <img src="{{ asset($drivingTeam->license_photo) }}" alt="Current License Photo">
-                        @else
-                            <div class="placeholder">No Photo</div>
-                        @endif
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="TermsConditions" id="TermsConditions" value="1"
+                                {{ old('TermsConditions', $drivingTeam->TermsConditions) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="TermsConditions">
+                                Accepted Terms & Conditions
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Submit Button -->
-            <div class="submit-section">
-                <button type="submit" class="btn-submit">Update Driver</button>
-            </div>
-        </form>
-    </div>
+        {{-- Submit --}}
+        <div class="d-flex gap-3 justify-content-end mb-5">
+            <a href="{{ route('admin.driving-team.index') }}" class="btn btn-outline-secondary px-4">
+                <i class="fas fa-times me-1"></i> Cancel
+            </a>
+            <a href="{{ route('admin.driving-team.show', $drivingTeam->id) }}" class="btn btn-outline-info px-4">
+                <i class="fas fa-eye me-1"></i> View Driver
+            </a>
+            <button type="submit" class="btn btn-primary px-5">
+                <i class="fas fa-save me-1"></i> Update Driver
+            </button>
+        </div>
+    </form>
 </div>
-</div>
-
-<script>
-function updateFileName(input, spanId) {
-    const fileName = input.files[0] ? input.files[0].name : 'No File Chosen';
-    document.getElementById(spanId).textContent = fileName;
-
-    // Update preview if it's an image
-    const file = input.files[0];
-    const previewId = spanId.replace('-name', '-preview');
-    const preview = document.getElementById(previewId);
-
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">';
-        };
-        reader.readAsDataURL(file);
-    } else if (file) {
-        preview.innerHTML = '<div class="placeholder">File Selected</div>';
-    }
-    // If no file selected, keep existing preview
-}
-</script>
 @endsection
+
+@push('scripts')
+<script>
+    function addAlternateMobile() {
+        const container = document.getElementById('alternateMobileContainer');
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 alternate-mobile-row';
+        div.innerHTML = `
+            <input type="text" name="alternateMobile[]" class="form-control" placeholder="Alternate mobile number">
+            <button type="button" class="btn btn-danger" onclick="removeAlternateMobile(this)">
+                <i class="fas fa-minus"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeAlternateMobile(btn) {
+        btn.closest('.alternate-mobile-row').remove();
+    }
+
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewFile(input, previewId, nameId) {
+        const preview = document.getElementById(previewId);
+        const nameEl = document.getElementById(nameId);
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    nameEl.classList.add('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.classList.add('d-none');
+                nameEl.textContent = '📄 ' + file.name;
+                nameEl.classList.remove('d-none');
+            }
+        }
+    }
+</script>
+@endpush
