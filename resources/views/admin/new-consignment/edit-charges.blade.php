@@ -1154,7 +1154,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 16px; font-weight: 500; color: #313131;">Rate / Unit (QR)</label>
+                            <label style="font-size: 16px; font-weight: 500; color: #313131;">Rate / Unit ({{ $franchiseCurrency }})</label>
                             <input type="text" name="rate_per_unit" value="{{ old('rate_per_unit', $transport->rate_per_unit) }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                         </div>
                     </div>
@@ -1169,7 +1169,7 @@
                             <input type="text" name="total_packages" value="{{ old('total_packages', $transport->total_packages) }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                         </div>
                         <div class="form-group">
-                            <label style="font-size: 16px; font-weight: 500; color: #313131;">Rate / Package (QR)</label>
+                            <label style="font-size: 16px; font-weight: 500; color: #313131;">Rate / Package ({{ $franchiseCurrency }})</label>
                             <input type="text" name="rate_per_package" value="{{ old('rate_per_package', $transport->rate_per_package) }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                         </div>
                     </div>
@@ -1180,64 +1180,68 @@
                     <h3>Fixed Rate</h3>
                     <div class="freight-fields">
                         <div class="form-group">
-                            <label style="font-size: 16px; font-weight: 500; color: #313131;">Fixed Freight Cost (QR)</label>
+                            <label style="font-size: 16px; font-weight: 500; color: #313131;">Fixed Freight Cost ({{ $franchiseCurrency }})</label>
                             <input type="text" name="fixed_cost" value="{{ old('fixed_cost', $transport->fixed_cost) }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 300; color: #4C4C4C;">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="calculated-cost">
-                Calculated Freight Cost (QR) = 00,00
+        <div class="calculated-cost">
+            Calculated Freight Cost ({{ $franchiseCurrency }}) = <span id="calculated-freight-cost">00,00</span>
+        </div>
+
+        <!-- Itemized Expenses Section -->
+        <div class="itemized-section">
+            <div class="section-header-main">
+                <span style="font-size: 28px;">📦</span>
+                <h2 style="font-size: 25px;">Itemized Expenses (Tolls, Surcharge, etc.)</h2>
             </div>
 
-            <!-- Itemized Expenses Section -->
-            <div class="itemized-section">
-                <div class="section-header-main">
-                    <span style="font-size: 28px;">📦</span>
-                    <h2 style="font-size: 25px;">Itemized Expenses (Tolls, Surcharge, etc.)</h2>
+            @if(count($expenseTypes) > 0)
+            @foreach($expenseTypes as $index => $expenseType)
+            <div class="expense-row" id="expense-row-{{ $index }}">
+                <div class="form-group">
+                    <label style="font-size: 16px; font-weight: 500; color: #313131;">Type</label>
+                    <input type="text" name="expense_type[]" value="{{ old('expense_type.'.$index, $expenseType) }}" placeholder="Type.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;" oninput="calculateTotalCost()">
                 </div>
-
-                @if(count($expenseTypes) > 0)
-                @foreach($expenseTypes as $index => $expenseType)
-                <div class="expense-row" id="expense-row-{{ $index }}">
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 500; color: #313131;">Type</label>
-                        <input type="text" name="expense_type[]" value="{{ old('expense_type.'.$index, $expenseType) }}" placeholder="Type.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;">
-                    </div>
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 500; color: #313131;">Amount (QR)</label>
-                        <input type="text" name="expense_amount[]" value="{{ old('expense_amount.'.$index, $expenseAmounts[$index] ?? '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;">
-                    </div>
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 500; color: #313131;">Remarks</label>
-                        <input type="text" name="expense_remarks[]" value="{{ old('expense_remarks.'.$index, $expenseRemarks[$index] ?? '') }}" placeholder="Optional Notes" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;">
-                    </div>
-                    <button type="button" class="add-btn" onclick="removeExpenseRow(this)">-</button>
+                <div class="form-group">
+                    <label style="font-size: 16px; font-weight: 500; color: #313131;">Amount ({{ $franchiseCurrency }})</label>
+                    <input type="text" name="expense_amount[]" value="{{ old('expense_amount.'.$index, $expenseAmounts[$index] ?? '') }}" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;" oninput="calculateTotalCost()">
                 </div>
-                @endforeach
-                @else
-                <div class="expense-row">
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 500; color: #313131;">Type</label>
-                        <input type="text" name="expense_type[]" placeholder="Type.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;">
-                    </div>
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 500; color: #313131;">Amount (QR)</label>
-                        <input type="text" name="expense_amount[]" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;">
-                    </div>
-                    <div class="form-group">
-                        <label style="font-size: 16px; font-weight: 500; color: #313131;">Remarks</label>
-                        <input type="text" name="expense_remarks[]" placeholder="Optional Notes" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;">
-                    </div>
-                    <button type="button" class="add-btn" onclick="addExpenseRow()">+</button>
+                <div class="form-group">
+                    <label style="font-size: 16px; font-weight: 500; color: #313131;">Remarks</label>
+                    <input type="text" name="expense_remarks[]" value="{{ old('expense_remarks.'.$index, $expenseRemarks[$index] ?? '') }}" placeholder="Optional Notes" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;" oninput="calculateTotalCost()">
                 </div>
-                @endif
-
-                <div class="total-expenses">
-                    Total Expenses (QR) = ₹ 00,00
-                </div>
+                <button type="button" class="add-btn" onclick="removeExpenseRow(this)">-</button>
             </div>
+            @endforeach
+            @else
+            <div class="expense-row">
+                <div class="form-group">
+                    <label style="font-size: 16px; font-weight: 500; color: #313131;">Type</label>
+                    <input type="text" name="expense_type[]" placeholder="Type.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;" oninput="calculateTotalCost()">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 16px; font-weight: 500; color: #313131;">Amount ({{ $franchiseCurrency ?? 'QR' }})</label>
+                    <input type="text" name="expense_amount[]" placeholder="Number.." style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;" oninput="calculateTotalCost()">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 16px; font-weight: 500; color: #313131;">Remarks</label>
+                    <input type="text" name="expense_remarks[]" placeholder="Optional Notes" style="height: 45px; border: 1px solid #313131; border-radius: 10px; padding: 0 17px; font-size: 14px; font-weight: 300; color: #000;" oninput="calculateTotalCost()">
+                </div>
+                <button type="button" class="add-btn" onclick="addExpenseRow()">+</button>
+            </div>
+            @endif
+
+            <div class="total-expenses">
+                Total Expenses ({{ $franchiseCurrency }}) = <span id="total-expenses">₹ 00,00</span>
+            </div>
+        </div>
+
+        <div class="calculated-cost" style="margin-top: 20px; font-size: 30px;">
+            Grand Total ({{ $franchiseCurrency }}) = <span id="grand-total">00,00</span>
+        </div>
 
             <!-- Summary Cards -->
             <div class="summary-cards">
@@ -1366,6 +1370,7 @@
     var storedDistance = "{{ $transport->total_distance ?? '' }}";
     var storedTravelTime = "{{ $transport->total_travel_time ?? '' }}";
     var googleMapsApiKey = "{{ env('GOOGLE_MAPS_API_KEY') }}";
+    var franchiseCurrency = "{{ $franchiseCurrency }}";
     
     // Fallback locations if empty
     if (!pickupLocation || pickupLocation === 'N/A') pickupLocation = "Dubai, UAE";
@@ -1839,6 +1844,66 @@
         if (e.key === 'Escape') {
             closeTripMapModal();
         }
+    });
+
+    // Calculate total cost function
+    function calculateTotalCost() {
+        // Calculate freight cost
+        let freightCost = 0;
+        const freightWeight = parseFloat(document.querySelector('input[name="freight_weight"]').value) || 0;
+        const ratePerUnit = parseFloat(document.querySelector('input[name="rate_per_unit"]').value) || 0;
+        const totalPackages = parseFloat(document.querySelector('input[name="total_packages"]').value) || 0;
+        const ratePerPackage = parseFloat(document.querySelector('input[name="rate_per_package"]').value) || 0;
+        const fixedCost = parseFloat(document.querySelector('input[name="fixed_cost"]').value) || 0;
+
+        // Calculate based on which method is selected
+        if (freightWeight && ratePerUnit) {
+            freightCost = freightWeight * ratePerUnit;
+        } else if (totalPackages && ratePerPackage) {
+            freightCost = totalPackages * ratePerPackage;
+        } else if (fixedCost) {
+            freightCost = fixedCost;
+        }
+
+        // Format freight cost
+        document.getElementById('calculated-freight-cost').textContent = freightCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        // Calculate total expenses
+        let totalExpenses = 0;
+        const expenseAmounts = document.querySelectorAll('input[name="expense_amount[]"]');
+        expenseAmounts.forEach(input => {
+            const amount = parseFloat(input.value) || 0;
+            totalExpenses += amount;
+        });
+
+        // Format total expenses
+        document.getElementById('total-expenses').textContent = franchiseCurrency + ' ' + totalExpenses.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        // Calculate and format grand total
+        const grandTotal = freightCost + totalExpenses;
+        document.getElementById('grand-total').textContent = grandTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Add event listeners to all calculation fields
+    document.addEventListener('DOMContentLoaded', function() {
+        // Freight calculation fields
+        const freightFields = [
+            'input[name="freight_weight"]',
+            'input[name="rate_per_unit"]',
+            'input[name="total_packages"]',
+            'input[name="rate_per_package"]',
+            'input[name="fixed_cost"]'
+        ];
+
+        freightFields.forEach(selector => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.addEventListener('input', calculateTotalCost);
+            }
+        });
+
+        // Calculate initial values
+        calculateTotalCost();
     });
 </script>
 @endsection

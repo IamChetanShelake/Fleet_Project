@@ -11,24 +11,25 @@ class ConsignmentController extends Controller
 {
     /**
      * Display a listing of the resource (Consignment Listing).
-     * Filtered by franchise_id from session
+     * Filtered by franchise_id from session, including draft consignments
      */
     public function index()
     {
         $franchiseId = session('franchise_id');
-        
+
         $query = Transport::orderBy('created_at', 'desc');
-        
+
         // Filter by franchise if franchise_id is in session
         if ($franchiseId) {
             $query->where('franchise_id', $franchiseId);
         }
-        
+
+        // Get all transports including drafts
         $transports = $query->get();
-        
+
         // Get franchise name for display
         $franchiseName = session('selected_franchise_name');
-        
+
         return view('admin.consignment.index', compact('transports', 'franchiseName'));
     }
 
@@ -38,26 +39,26 @@ class ConsignmentController extends Controller
     public function show(string $id)
     {
         $franchiseId = session('franchise_id');
-        
+
         $query = Transport::where('id', $id);
-        
+
         // Filter by franchise if franchise_id is in session
         if ($franchiseId) {
             $query->where('franchise_id', $franchiseId);
         }
-        
+
         $transport = $query->first();
-        
+
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
-        
+
         // Fetch assigned vehicle details
         $assignedVehicle = null;
         if ($transport->assigned_vehicle_no) {
             $assignedVehicle = Vehicle::where('vehicle_number', $transport->assigned_vehicle_no)->first();
         }
-        
+
         // Fetch assigned driver details from driving teams
         $assignedDriver = null;
         if ($transport->assigned_driver_id) {
@@ -68,26 +69,27 @@ class ConsignmentController extends Controller
         } elseif ($transport->assigned_driver) {
             $assignedDriver = \App\Models\DrivingTeam::where('name', $transport->assigned_driver)->first();
         }
-        
+
         return view('admin.new-consignment.show', compact('transport', 'assignedVehicle', 'assignedDriver'));
     }
 
     /**
      * Show the form for editing the specified resource (Continue Editing from Listing).
+     * Redirects to appropriate edit step based on consignment completion status.
      */
     public function edit(string $id)
     {
         $franchiseId = session('franchise_id');
-        
+
         $query = Transport::where('id', $id);
-        
+
         // Filter by franchise if franchise_id is in session
         if ($franchiseId) {
             $query->where('franchise_id', $franchiseId);
         }
-        
+
         $transport = $query->first();
-        
+
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
@@ -95,16 +97,21 @@ class ConsignmentController extends Controller
         // Store transport ID in session for the multi-step edit flow
         session(['transport_id' => $transport->id]);
 
-        // Redirect to appropriate step based on status
+        // Redirect to appropriate edit route based on status and completion state
         switch ($transport->status) {
             case 'draft':
-                return redirect()->route('admin.new-consignment.create');
+                return redirect()->route('admin.new-consignment.edit', $transport->id);
             case 'assigned':
-                return redirect()->route('admin.freight-assignment.index');
+                // For assigned consignments, check if charges have been entered
+                if ($transport->freight_weight || $transport->total_packages || $transport->fixed_cost || $transport->total_cost > 0) {
+                    return redirect()->route('admin.charges-advance.edit', $transport->id);
+                } else {
+                    return redirect()->route('admin.freight-assignment.edit', $transport->id);
+                }
             case 'confirmed':
-                return redirect()->route('admin.charges-advance.index');
+                return redirect()->route('admin.charges-advance.edit', $transport->id);
             default:
-                return redirect()->route('admin.new-consignment.create');
+                return redirect()->route('admin.new-consignment.edit', $transport->id);
         }
     }
 
@@ -114,16 +121,16 @@ class ConsignmentController extends Controller
     public function destroy(string $id)
     {
         $franchiseId = session('franchise_id');
-        
+
         $query = Transport::where('id', $id);
-        
+
         // Filter by franchise if franchise_id is in session
         if ($franchiseId) {
             $query->where('franchise_id', $franchiseId);
         }
-        
+
         $transport = $query->first();
-        
+
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
@@ -140,24 +147,37 @@ class ConsignmentController extends Controller
     {
         $franchiseId = session('franchise_id');
         $franchiseName = session('selected_franchise_name') ?? 'UAE';
-        
+
         $query = Transport::where('id', $id);
-        
+
         // Filter by franchise if franchise_id is in session
         if ($franchiseId) {
             $query->where('franchise_id', $franchiseId);
         }
-        
+
         $transport = $query->first();
-        
+
         if (!$transport) {
             return redirect()->route('admin.consignment.index')->with('error', 'Consignment not found.');
         }
 
-        // Generate invoice number in format: INV/FRANCHISE/00001
-        $franchiseCode = strtoupper(substr($franchiseName, 0, 3));
+        // Generate invoice number with franchise-specific prefix
+        $franchiseCode = 'UAE'; // Default
+        switch ($franchiseName) {
+            case 'Qatar':
+                $franchiseCode = 'QTR';
+                break;
+            case 'Saudi Arabia':
+                $franchiseCode = 'SAU';
+                break;
+            case 'United Arab Emirates':
+                $franchiseCode = 'UAE';
+                break;
+            default:
+                $franchiseCode = substr(strtoupper($franchiseName), 0, 3);
+        }
         $invoiceNo = 'INV/' . $franchiseCode . '/' . str_pad($id, 5, '0', STR_PAD_LEFT);
-        
+
         $expenseTypes = is_array($transport->expense_types) ? implode(', ', $transport->expense_types) : ($transport->expense_types ?? '');
         $expenseAmounts = is_array($transport->expense_amounts) ? implode(', ', $transport->expense_amounts) : ($transport->expense_amounts ?? '');
         $expenseRemarks = is_array($transport->expense_remarks) ? implode(', ', $transport->expense_remarks) : ($transport->expense_remarks ?? '');
@@ -210,7 +230,7 @@ class ConsignmentController extends Controller
 
         // Generate PDF using DomPDF
         $pdf = Pdf::loadView('admin.consignment.invoice-pdf', compact('data'));
-        
+
         // Download the PDF file
         return $pdf->download('invoice-' . str_replace('/', '-', $invoiceNo) . '.pdf');
     }

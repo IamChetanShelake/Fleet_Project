@@ -812,18 +812,18 @@
 
 <div class="dashboard-wrapper">
     <!-- Top Navigation Bar -->
-    <!-- <div class="top-navbar">
+    <div class="top-navbar">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="search-input" placeholder="Search..">
         </div>
         
-        <select class="task-dropdown">
-            <option>Task</option>
-            <option>All Tasks</option>
-            <option>Pending Tasks</option>
-            <option>Completed Tasks</option>
-        </select>
+        @if($franchiseName)
+        <div class="franchise-badge" style="background: #004271; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-building"></i>
+            {{ $franchiseName }}
+        </div>
+        @endif
 
         <div class="nav-actions">
             <button class="btn-main-account">Go To Main Account</button>
@@ -837,7 +837,7 @@
                 <i class="fas fa-user"></i>
             </div>
         </div>
-    </div> -->
+    </div>
 
     <!-- Quick Access Buttons -->
     <div class="quick-access-section">
@@ -1052,7 +1052,7 @@
     let tripDirectionsRenderer = null;
 
     // PHP data for ongoing transports
-    const ongoingTransports = @json($ongoingTransports ?? []);
+    const ongoingTransports = <?php echo json_encode($ongoingTransports ?? []); ?>;
     console.log('Ongoing transports data:', ongoingTransports);
 
     // Initialize Dashboard Map

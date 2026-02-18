@@ -149,7 +149,7 @@
         <table>
             <tr>
                 <th style="width: 20%;">Invoice No</th>
-                <td style="width: 20%;">{{ $data['invoice_no'] }}</td>
+                <td style="width: 20%;">{{ $data['id'] }}</td>
                 <th style="width: 20%;">Invoice Value</th>
                 <td style="width: 20%;">{{ $data['invoice_value'] }}</td>
                 <th style="width: 20%;">Packages</th>

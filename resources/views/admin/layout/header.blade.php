@@ -942,11 +942,11 @@
                     }
 
                     // 5. CHECK GENERAL CONSIGNMENT
-                    // This runs only if 'new-consignment' was NOT found
-                    else if (currentPath.includes('/admin/consignment')) {
+                    // This runs only if 'new-consignment' and 'customer-consignment' were NOT found
+                    else if (currentPath.includes('/admin/consignment') && !currentPath.includes('/admin/customer-consignment')) {
                         // Ensure we don't match 'new-consignment' or 'trip-status' here just in case
                         if (linkPath.includes('consignment') && !linkPath.includes('new-consignment') && !
-                            linkPath.includes('trip-status')) {
+                            linkPath.includes('trip-status') && !linkPath.includes('customer-consignment')) {
                             link.classList.add('active');
                             hasActiveChild = true;
                             // Open parent dropdown if this is a child item

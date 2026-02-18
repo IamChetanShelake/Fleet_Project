@@ -358,12 +358,30 @@
 
                     <!-- Invoice Rows -->
                     @forelse($transports as $transport)
-                    <div class="invoice-row" data-status="{{ $transport->status }}" data-created="{{ $transport->created_at ? $transport->created_at->format('Y-m-d') : '' }}" data-invoice="{{ 'INV/UAE/' . str_pad($transport->id, 5, '0', STR_PAD_LEFT) }}" data-order="{{ $transport->order_no ?? '' }}">
+                    @php
+                        $franchiseCode = 'UAE';
+                        $franchiseName = session('selected_franchise_name') ?? 'United Arab Emirates';
+                        switch ($franchiseName) {
+                            case 'Qatar':
+                                $franchiseCode = 'QTR';
+                                break;
+                            case 'Saudi Arabia':
+                                $franchiseCode = 'SAU';
+                                break;
+                            case 'United Arab Emirates':
+                                $franchiseCode = 'UAE';
+                                break;
+                            default:
+                                $franchiseCode = substr(strtoupper($franchiseName), 0, 3);
+                        }
+                        $invoiceNo = 'INV/' . $franchiseCode . '/' . str_pad($transport->id, 5, '0', STR_PAD_LEFT);
+                    @endphp
+                    <div class="invoice-row" data-status="{{ $transport->status }}" data-created="{{ $transport->created_at ? $transport->created_at->format('Y-m-d') : '' }}" data-invoice="{{ $invoiceNo }}" data-order="{{ $transport->order_no ?? '' }}">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div class="invoice-icon">
                                 <i class="fas fa-file-invoice"></i>
                             </div>
-                            <span style="font-weight: 600;">{{ 'INV/UAE/' . str_pad($transport->id, 5, '0', STR_PAD_LEFT) }}</span>
+                            <span style="font-weight: 600;">{{ $invoiceNo }}</span>
                         </div>
                         <span>{{ $transport->order_no ?? 'N/A' }}</span>
                         <span>{{ $transport->created_at ? $transport->created_at->format('M d, Y') : 'N/A' }}</span>

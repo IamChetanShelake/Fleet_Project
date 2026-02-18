@@ -70,9 +70,27 @@
                             </div>
 
                             <!-- Basic Info -->
+                            @php
+                                $franchiseCode = 'UAE';
+                                $franchiseName = session('selected_franchise_name') ?? 'United Arab Emirates';
+                                switch ($franchiseName) {
+                                    case 'Qatar':
+                                        $franchiseCode = 'QTR';
+                                        break;
+                                    case 'Saudi Arabia':
+                                        $franchiseCode = 'SAU';
+                                        break;
+                                    case 'United Arab Emirates':
+                                        $franchiseCode = 'UAE';
+                                        break;
+                                    default:
+                                        $franchiseCode = substr(strtoupper($franchiseName), 0, 3);
+                                }
+                                $invoiceNo = 'INV/' . $franchiseCode . '/' . str_pad($transport->id, 5, '0', STR_PAD_LEFT);
+                            @endphp
                             <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
                                 <tr>
-                                    <td style="width: 50%; padding: 8px; border: 1px solid #ddd;"><strong>Invoice ID:</strong> {{ 'INV/UAE/' . str_pad($transport->id, 5, '0', STR_PAD_LEFT) }}</td>
+                                    <td style="width: 50%; padding: 8px; border: 1px solid #ddd;"><strong>Invoice ID:</strong> {{ $invoiceNo }}</td>
                                     <td style="width: 50%; padding: 8px; border: 1px solid #ddd;"><strong>Status:</strong> {{ ucfirst($transport->status ?? 'draft') }}</td>
                                 </tr>
                                 <tr>

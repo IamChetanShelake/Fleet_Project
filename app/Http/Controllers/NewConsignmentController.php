@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transport;
 use App\Models\Vehicle;
+use App\Models\Franchise;
 
 class NewConsignmentController extends Controller
 {
@@ -102,11 +103,18 @@ class NewConsignmentController extends Controller
         }
 
         // Create new transport only if no existing draft found
-        $transport = Transport::create($request->only([
+        $franchiseId = session('franchise_id');
+        
+        $transportData = $request->only([
             'consigner', 'pickup_location', 'source_pincode', 'source_city', 'source_state', 'source_country', 'source_building_no', 'source_maps_link',
             'delivery_location', 'address_line', 'building_no', 'dest_pincode', 'dest_state', 'dest_country', 'dest_building_no', 'dest_maps_link',
             'pickup_datetime', 'delivery_date', 'receiver_name', 'receiver_mobile'
-        ]));
+        ]);
+        
+        // Add franchise_id to the transport data
+        $transportData['franchise_id'] = $franchiseId;
+        
+        $transport = Transport::create($transportData);
 
         // Store transport ID in session for the multi-step flow
         session(['transport_id' => $transport->id]);
@@ -424,7 +432,18 @@ class NewConsignmentController extends Controller
             return redirect()->route('admin.new-consignment.create')->with('error', 'Transport record not found. Please start over.');
         }
 
-        return view('admin.new-consignment.charges-advance', compact('transport'));
+        // Get franchise currency
+        $franchiseCurrency = 'QR'; // Default
+        if ($transport->franchise_id && $transport->franchise) {
+            $franchiseCurrency = $transport->franchise->currency;
+        } elseif (session('franchise_id')) {
+            $franchise = Franchise::find(session('franchise_id'));
+            if ($franchise) {
+                $franchiseCurrency = $franchise->currency;
+            }
+        }
+
+        return view('admin.new-consignment.charges-advance', compact('transport', 'franchiseCurrency'));
     }
 
     /**
@@ -440,7 +459,18 @@ class NewConsignmentController extends Controller
         // Store transport ID in session for the edit flow
         session(['transport_id' => $transport->id]);
 
-        return view('admin.new-consignment.edit-charges', compact('transport'));
+        // Get franchise currency
+        $franchiseCurrency = 'QR'; // Default
+        if ($transport->franchise_id && $transport->franchise) {
+            $franchiseCurrency = $transport->franchise->currency;
+        } elseif (session('franchise_id')) {
+            $franchise = Franchise::find(session('franchise_id'));
+            if ($franchise) {
+                $franchiseCurrency = $franchise->currency;
+            }
+        }
+
+        return view('admin.new-consignment.edit-charges', compact('transport', 'franchiseCurrency'));
     }
 
     /**

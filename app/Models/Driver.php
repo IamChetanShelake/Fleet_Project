@@ -10,36 +10,88 @@ use Illuminate\Notifications\Notifiable;
 
 class Driver extends Model
 {
-    use HasApiTokens,Notifiable;
-    
-    protected $guarded = [
-        
+    use HasApiTokens;
+
+    protected $fillable = [
+        'driver_id',
+        'name',
+        'email',
+        'nationality',
+        'countryLevel',
+        'dob',
+        'blood_group',
+        'phone',
+        'alternateMobile',
+        'franchise',
+        'emergency_phone',
+        'emergencyRelation',
+        'residenceId',
+        'passport',
+        'passportExpiryDate',
+        'residencePermitStatus',
+        'LicenseCategory',
+        'LicenseValidity',
+        'vehicleBrandAndModel',
+        'vehicleManufactureYear',
+        'vehicleRegstrationNo',
+        'vehicleFuelType',
+        'heavyVehiclePermit',
+        'InsuranceExpiryDate',
+        'LicenseExpiryDate',
+        'LicenseExpiryAlert',
+        'drivingLicenseNo',
+        'driverType',
+        'driverPhoto',
+        'signature',
+        'drivingLicense',
+        'vehicleInsurance',
+        'consent',
+        'TermsConditions',
+        'RlcGatepass',
+        'MicGatepass',
+        'qatarId',
+        'address',
+        'license_number',
+        'license_expiry',
+        'license_type',
+        'total_trips',
+        'experience_years',
+        'status',
+        'activeStatus',
+        'kyc_status',
+        'createdBy',
+        'avatar_path',
+        'latitude',
+        'longitude',
+        'recordedAt',
     ];
 
     protected $casts = [
-        'license_expiry' => 'date',
-        'passportExpiryDate'=>'date',
-        'InsuranceExpiryDate'=>'date',
-        'LicenseExpiryDate'=>'date',
-        'license_expiry'=>'date',
-        'dob'=>'date',
-        'status'=>'string',
-        'total_trips' => 'integer',
-        'experience_years' => 'integer',
-        'alternateMobile' => 'array',
+        'dob'                  => 'date',
+        'license_expiry'       => 'date',
+        'LicenseExpiryDate'    => 'date',
+        'LicenseValidity'      => 'date',
+        'passportExpiryDate'   => 'date',
+        'InsuranceExpiryDate'  => 'date',
+        'recordedAt'           => 'datetime',
+        'alternateMobile'      => 'array',
+        'LicenseExpiryAlert'   => 'boolean',
+        'consent'              => 'boolean',
+        'TermsConditions'      => 'boolean',
+        'total_trips'          => 'integer',
+        'experience_years'     => 'integer',
+        'latitude'             => 'decimal:7',
+        'longitude'            => 'decimal:7',
     ];
-    
-    protected $appends = ['documents'];
 
     /**
-     * Boot the model.
+     * Boot the model — auto-generate driver_id.
      */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($driver) {
-            // Auto-generate driver_id if not set
             if (empty($driver->driver_id)) {
                 $driver->driver_id = self::generateDriverId();
             }
@@ -47,29 +99,23 @@ class Driver extends Model
     }
 
     /**
-     * Generate a unique driver ID.
-     * Format: DR-001, DR-002, etc.
+     * Generate a unique driver ID: DRV001, DRV002, …
      */
-    public static function generateDriverId()
+    public static function generateDriverId(): string
     {
-        // Get the last driver
-        $lastDriver = self::orderBy('id', 'desc')->first();
-        
+        $last = self::orderBy('id', 'desc')->first();
         $lastNumber = 0;
-        if ($lastDriver && !empty($lastDriver->driver_id)) {
-            // Extract the numeric part from the last driver_id
-            $parts = explode('-', $lastDriver->driver_id);
-            if (isset($parts[1])) {
-                $lastNumber = (int) $parts[1];
-            }
+
+        if ($last && !empty($last->driver_id)) {
+            $lastNumber = (int) substr($last->driver_id, 3);
         }
-        
-        // Increment and pad with zeros
-        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        
-        return 'DR-' . $newNumber;
+
+        return 'DRV' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Get the vehicles for this driver.
+     */
     public function vehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class);
