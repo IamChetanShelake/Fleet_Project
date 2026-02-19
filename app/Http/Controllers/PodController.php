@@ -22,8 +22,12 @@ class PodController extends Controller
         $query = Transport::where('id', $transportId);
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
         $transport = $query->firstOrFail();
@@ -43,8 +47,12 @@ class PodController extends Controller
         $query = Transport::where('id', $transportId);
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
         $transport = $query->firstOrFail();

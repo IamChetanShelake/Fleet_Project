@@ -502,7 +502,20 @@
                             <span style="font-weight: 600;">{{ $customer->name }}</span>
                         </div>
                         <span>{{ $customer->email ?? 'N/A' }}</span>
-                        <span>{{ $customer->mobile_no ?? 'N/A' }}</span>
+                        @php
+                            $mobiles = $customer->mobile_no;
+                            if (is_string($mobiles) && !empty($mobiles)) {
+                                $mobiles = json_decode($mobiles, true);
+                            }
+                            $primaryMobile = is_array($mobiles) && !empty($mobiles) ? $mobiles[0] : ($customer->mobile_no ?? 'N/A');
+                            $additionalCount = is_array($mobiles) ? count($mobiles) - 1 : 0;
+                        @endphp
+                        <div>
+                            <div>{{ $primaryMobile }}</div>
+                            @if($additionalCount > 0)
+                                <small class="text-muted">+{{ $additionalCount }} more</small>
+                            @endif
+                        </div>
                         <span>{{ $customer->created_at->format('M d, Y') }}</span>
                         <div class="action-icons">
                             <a href="{{ route('admin.customer.show', $customer->id) }}" class="action-icon view" title="View">

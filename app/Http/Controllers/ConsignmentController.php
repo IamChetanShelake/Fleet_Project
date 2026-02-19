@@ -19,9 +19,12 @@ class ConsignmentController extends Controller
 
         $query = Transport::orderBy('created_at', 'desc');
 
-        // Filter by franchise if franchise_id is in session
+        // Filter by franchise: show records that match OR have no franchise assigned
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         // Get all transports including drafts
@@ -42,9 +45,12 @@ class ConsignmentController extends Controller
 
         $query = Transport::where('id', $id);
 
-        // Filter by franchise if franchise_id is in session
+        // Filter by franchise: match franchise OR unassigned
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $transport = $query->first();
@@ -83,9 +89,12 @@ class ConsignmentController extends Controller
 
         $query = Transport::where('id', $id);
 
-        // Filter by franchise if franchise_id is in session
+        // Filter by franchise: match franchise OR unassigned
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $transport = $query->first();
@@ -124,9 +133,12 @@ class ConsignmentController extends Controller
 
         $query = Transport::where('id', $id);
 
-        // Filter by franchise if franchise_id is in session
+        // Filter by franchise: match franchise OR unassigned
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $transport = $query->first();
@@ -150,9 +162,12 @@ class ConsignmentController extends Controller
 
         $query = Transport::where('id', $id);
 
-        // Filter by franchise if franchise_id is in session
+        // Filter by franchise: match franchise OR unassigned
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $transport = $query->first();

@@ -20,11 +20,19 @@ class TripStatusController extends Controller
         $query = Transport::orderBy('created_at', 'desc');
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
-        $transports = $query->get();
+        // Only show consignments that have been assigned (have a vehicle assigned)
+        $query->whereNotNull('assigned_vehicle_no')
+              ->where('assigned_vehicle_no', '!=', '');
+        
+        $transports = $query->paginate(10);
         
         return view('admin.trip-status.index', compact('transports'));
     }
@@ -40,8 +48,12 @@ class TripStatusController extends Controller
         $query = Transport::where('id', $id);
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
         $transport = $query->first();
@@ -83,8 +95,12 @@ class TripStatusController extends Controller
         $query = Transport::where('id', $id);
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
         $transport = $query->first();
@@ -123,8 +139,12 @@ class TripStatusController extends Controller
         $query = Transport::where('id', $id);
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
         $transport = $query->first();
@@ -161,8 +181,12 @@ class TripStatusController extends Controller
         $query = Transport::where('id', $id);
         
         // Filter by franchise if franchise_id is in session
+        // Also include records where franchise_id is NULL (legacy data)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
         
         $transport = $query->first();

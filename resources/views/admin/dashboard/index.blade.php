@@ -1,8 +1,14 @@
 @extends('admin.layout.master')
 
 @section('content')
+@php
+    $googleMapsApiKey = env('GOOGLE_MAPS_API_KEY');
+    // Debug: Log the API key status
+    \Log::info('Google Maps API Key: ' . ($googleMapsApiKey ? 'Set (' . substr($googleMapsApiKey, 0, 10) . '...)' : 'NOT SET'));
+    \Log::info('Ongoing Transports Count: ' . count($ongoingTransports ?? []));
+@endphp
 <!-- Google Maps API -->
-<script defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&loading=async&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ $googleMapsApiKey }}&libraries=places&callback=initDashboardMap" async defer></script>
 
 <style>
     /* Dashboard Specific Styles */
@@ -932,6 +938,13 @@
 
     <!-- Map Section -->
     <div class="map-section">
+        @if(!env('GOOGLE_MAPS_API_KEY'))
+        <div class="alert alert-warning" style="margin-bottom: 1rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+            <i class="fas fa-exclamation-triangle"></i> 
+            <strong>Google Maps API key is not configured.</strong> 
+            Please add <code>GOOGLE_MAPS_API_KEY</code> to your <code>.env</code> file to display routes on the map.
+        </div>
+        @endif
         <div class="map-container">
             <div id="dashboard-map" class="dashboard-map"></div>
             
@@ -1054,6 +1067,12 @@
     // PHP data for ongoing transports
     const ongoingTransports = <?php echo json_encode($ongoingTransports ?? []); ?>;
     console.log('Ongoing transports data:', ongoingTransports);
+    
+    // Check if Google Maps API key is configured
+    const googleMapsApiKey = '<?php echo env('GOOGLE_MAPS_API_KEY', ''); ?>';
+    if (!googleMapsApiKey) {
+        console.error('Google Maps API key is not configured. Please add GOOGLE_MAPS_API_KEY to your .env file.');
+    }
 
     // Initialize Dashboard Map
     function initDashboardMap() {

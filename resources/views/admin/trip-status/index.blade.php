@@ -892,6 +892,56 @@
         color: #999;
     }
 
+    /* Pagination Wrapper */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        margin-top: 20px;
+        background: #fff;
+        border: 1px solid #6C6C6C;
+        border-radius: 10px;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 5px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .pagination li {
+        list-style: none;
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #003B67;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .pagination a:hover {
+        background: #f8f9fa;
+        border-color: #003B67;
+    }
+
+    .pagination .active span {
+        background: #003B67;
+        color: #fff;
+        border-color: #003B67;
+    }
+
+    .pagination .disabled span {
+        color: #999;
+        cursor: not-allowed;
+    }
+
     /* Responsive */
     @media (max-width: 1200px) {
         .table-header,
@@ -936,7 +986,7 @@
                             <i class="fas fa-filter"></i>
                             Filters
                         </button>
-                        <span class="results-count" id="resultsCount">{{ count($transports) }} trips</span>
+                        <span class="results-count" id="resultsCount">{{ $transports->total() }} trips</span>
                     </div>
                 </div>
             </div>
@@ -1058,6 +1108,17 @@
                             <a href="{{ route('admin.trip-status.edit', $transport->id) }}" class="action-icon edit" title="Edit Status">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            @if($transport->status !== 'cancelled' && $transport->status !== 'delivered')
+                            <form action="{{ route('admin.trip-status.update', $transport->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to cancel this trip?');">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="status" value="cancelled">
+                                <input type="hidden" name="reason" value="Cancelled by admin">
+                                <button type="submit" class="action-icon delete" title="Cancel Trip">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                            @endif
                         </div>
                     </div>
                     @empty
@@ -1069,6 +1130,13 @@
                     @endforelse
                 </div>
             </div>
+
+            <!-- Pagination -->
+            @if($transports->hasPages())
+            <div class="pagination-wrapper">
+                {{ $transports->links() }}
+            </div>
+            @endif
         </div>
     </div>
 </div>

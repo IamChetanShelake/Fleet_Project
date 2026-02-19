@@ -116,6 +116,11 @@ class NewConsignmentController extends Controller
         
         $transport = Transport::create($transportData);
 
+        // Generate order number for admin consignment
+        $orderNo = 'TR' . str_pad($transport->id, 4, '0', STR_PAD_LEFT);
+        $transport->order_no = $orderNo;
+        $transport->save();
+
         // Store transport ID in session for the multi-step flow
         session(['transport_id' => $transport->id]);
 

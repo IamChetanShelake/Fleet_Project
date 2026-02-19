@@ -18,9 +18,7 @@
     .dashboard-wrapper {
         display: flex;
         min-height: 100vh;
-        margin-left: 0;
         background: #E5EAF2;
-        transition: margin-left 0.3s ease;
     }
 
     .invoice-container-wrapper {
@@ -110,13 +108,17 @@
         background: #fff;
         border: 1px solid #6C6C6C;
         border-radius: 15px;
-        overflow: hidden;
-    }
-
-    /* Table */
-    .invoice-table {
+        overflow-x: auto;
+        overflow-y: hidden;
         width: 100%;
     }
+
+    /* Table minimum width for proper scrolling */
+    .invoice-table {
+        min-width: 900px;
+        width: 100%;
+    }
+
 
     .table-header {
         background: #003B67;
@@ -131,7 +133,7 @@
            7. Actions (fixed)
         */
         grid-template-columns: 120px 130px 110px 1fr 1fr 110px 100px;
-        gap: 85px;
+        gap: 20px;
         padding: 15px 20px;
     }
 
@@ -146,7 +148,7 @@
     .invoice-row {
         display: grid;
         grid-template-columns: 120px 130px 110px 1fr 1fr 110px 100px;
-        gap: 75px;
+        gap: 20px;
         padding: 15px 20px;
         align-items: center;
         border-bottom: 1px solid #E5EAF2;
@@ -162,7 +164,8 @@
         color: #000;
     }
 
-    /* .invoice-icon {
+    /* .invoice-icon
+     {
         width: 35px;
         height: 35px;
         border-radius: 50%;
@@ -295,6 +298,70 @@
         border-color: #003B67;
     }
 
+    /* Card Footer Pagination */
+    .card-footer {
+        background: transparent;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        width: 100%;
+        min-width: 900px;
+        box-sizing: border-box;
+    }
+
+    .card-footer .pagination {
+        display: flex;
+        gap: 5px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-wrap: wrap;
+    }
+
+    .card-footer .pagination li {
+        list-style: none;
+    }
+
+    .card-footer .pagination li a,
+    .card-footer .pagination li span {
+        display: block;
+        border: 1px solid #6C6C6C;
+        color: #003B67;
+        border-radius: 5px;
+        padding: 6px 12px;
+        text-decoration: none;
+        background: white;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .card-footer .pagination li a:hover {
+        background: #f0f0f0;
+        border-color: #003B67;
+    }
+
+    .card-footer .pagination li.active a,
+    .card-footer .pagination li.active span {
+        background: #003B67;
+        color: white;
+        border-color: #003B67;
+    }
+
+    .card-footer .pagination li.disabled span {
+        color: #ccc;
+        border-color: #ddd;
+        background: #f9f9f9;
+        cursor: not-allowed;
+    }
+
+    /* Pagination SVG icons sizing */
+    .pagination svg {
+        width: 16px;
+        height: 16px;
+    }
+
     /* Responsive */
     @media (max-width: 1200px) {
         .table-header,
@@ -407,14 +474,18 @@
                     </div>
                     @endforelse
                 </div>
-            </div>
 
-            <!-- Pagination -->
-            @if(isset($transports) && $transports->hasPages())
-            <div class="pagination-wrapper">
-                {{ $transports->appends(request()->query())->links() }}
+                <!-- Pagination -->
+                @if(isset($transports) && $transports->hasPages())
+                <div class="card-footer bg-transparent d-flex justify-content-between align-items-center" style="padding: 15px 20px; border-top: 1px solid #E5EAF2;">
+                    <small class="text-muted">
+                        Showing {{ $transports->firstItem() }}–{{ $transports->lastItem() }}
+                        of {{ $transports->total() }} invoices
+                    </small>
+                    {{ $transports->appends(request()->query())->links() }}
+                </div>
+                @endif
             </div>
-            @endif
         </div>
     </div>
 </div>

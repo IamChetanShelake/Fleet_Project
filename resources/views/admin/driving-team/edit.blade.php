@@ -1,23 +1,44 @@
-@extends('admin.layouts.app')
+@extends('admin.layout.master')
 
 @section('title', 'Edit Driver')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="dashboard-wrapper">
+    <div class="dashboard-container" style="padding: 24px; width: 100%;">
+
+    {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0 fw-bold">Edit Driver — {{ $drivingTeam->name }}</h4>
-        <a href="{{ route('admin.driving-team.index') }}" class="btn btn-secondary btn-sm">
+        <h4 class="mb-0 fw-bold"><i class="fas fa-edit me-2 text-primary"></i>Edit Driver — {{ $drivingTeam->name }}</h4>
+        <a href="{{ route('admin.driving-team.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-1"></i> Back to List
         </a>
     </div>
 
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- Validation Errors --}}
     @if($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Please fix the following errors:</strong>
+            <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
@@ -534,10 +555,9 @@
             </button>
         </div>
     </form>
+    </div>
 </div>
-@endsection
 
-@push('scripts')
 <script>
     function addAlternateMobile() {
         const container = document.getElementById('alternateMobileContainer');
@@ -589,4 +609,4 @@
         }
     }
 </script>
-@endpush
+@endsection

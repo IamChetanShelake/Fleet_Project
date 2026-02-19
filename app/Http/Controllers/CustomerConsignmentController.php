@@ -7,6 +7,7 @@ use App\Models\Transport;
 use App\Models\Geography;
 use App\Models\Hub;
 use App\Models\Vehicle;
+use App\Models\Driver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,8 +38,12 @@ class CustomerConsignmentController extends Controller
             ->with('customer:id,name,email');
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         // Search filter
@@ -146,6 +151,11 @@ class CustomerConsignmentController extends Controller
                 'status' => 'pending',
             ]);
 
+            // Generate order number for customer consignment
+            $orderNo = 'CUST' . str_pad($transport->id, 4, '0', STR_PAD_LEFT);
+            $transport->order_no = $orderNo;
+            $transport->save();
+
             DB::commit();
 
             // Clear session data
@@ -173,8 +183,12 @@ class CustomerConsignmentController extends Controller
             ->with(['customer']);
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $consignment = $query->findOrFail($id);
@@ -193,8 +207,12 @@ class CustomerConsignmentController extends Controller
         $query = Transport::where('consignment_type', 'customer');
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $consignment = $query->findOrFail($id);
@@ -214,8 +232,12 @@ class CustomerConsignmentController extends Controller
         $query = Transport::where('consignment_type', 'customer');
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $validated = $request->validate([
@@ -291,8 +313,12 @@ class CustomerConsignmentController extends Controller
         $query = Transport::where('consignment_type', 'customer');
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         try {
@@ -319,8 +345,12 @@ class CustomerConsignmentController extends Controller
         $query = Transport::where('consignment_type', 'customer');
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $consignment = $query->findOrFail($id);
@@ -340,8 +370,12 @@ class CustomerConsignmentController extends Controller
             ->where('id', $id);
 
         // Filter by franchise if franchise_id is in session
+        // Also include records with no franchise assigned (franchise_id = NULL)
         if ($franchiseId) {
-            $query->where('franchise_id', $franchiseId);
+            $query->where(function ($q) use ($franchiseId) {
+                $q->where('franchise_id', $franchiseId)
+                  ->orWhereNull('franchise_id');
+            });
         }
 
         $validated = $request->validate([
@@ -521,15 +555,27 @@ class CustomerConsignmentController extends Controller
     public function assignVehicle($id)
     {
         $consignment = Transport::where('consignment_type', 'customer')
-            ->with('customer:id,name')
+            ->with('customer:id,name,email')
             ->findOrFail($id);
 
-        // Get available vehicles
-        $vehicles = Vehicle::where('status', 'active')
-            ->orderBy('registration_number')
-            ->pluck('registration_number', 'id');
+        // Get vehicles with availability status
+        // Only show available vehicles or vehicles already assigned to this consignment
+        $vehicles = Vehicle::where('status', 'available')
+            ->orWhere(function($query) use ($consignment) {
+                // Include vehicles already assigned to this consignment
+                if ($consignment->assigned_vehicle_no) {
+                    $query->where('vehicle_number', $consignment->assigned_vehicle_no);
+                }
+            })
+            ->orderBy('vehicle_number')
+            ->get();
 
-        return view('admin.customer-consignment.assign-vehicle', compact('consignment', 'vehicles'));
+        // Get active drivers only
+        $drivers = Driver::where('status', 'on_duty')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.customer-consignment.assign-vehicle', compact('consignment', 'vehicles', 'drivers'));
     }
 
     /**
@@ -545,9 +591,20 @@ class CustomerConsignmentController extends Controller
         try {
             $consignment = Transport::where('consignment_type', 'customer')->findOrFail($id);
 
+            // Fetch vehicle and driver details for storing
+            $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
+            $driverName = null;
+            if (!empty($validated['driver_id'])) {
+                $driver = Driver::find($validated['driver_id']);
+                $driverName = $driver ? $driver->name : null;
+            }
+
             $consignment->update([
-                'vehicle_id' => $validated['vehicle_id'],
-                'driver_id' => $validated['driver_id'] ?? null,
+                'assigned_vehicle_no' => $vehicle->vehicle_number,
+                'assigned_driver_id'  => $validated['driver_id'] ?? null,
+                'assigned_driver'     => $driverName,
+                'vehicle_type'        => $vehicle->vehicle_type,
+                'status'              => 'assigned',
             ]);
 
             return redirect()->route('admin.customer-consignment.show', $id)

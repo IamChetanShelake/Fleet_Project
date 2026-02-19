@@ -8,11 +8,12 @@ use App\Models\Driver;
 use App\Models\Pod;
 use App\Models\Transport;
 use App\Models\Customer;
-    use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator;
 
 class customerApiController extends Controller
 {
     public function getDriversLocation(Request $request){
+        
          if(!$request->user()){
             return response()->json([
                 'success' => false,
@@ -24,7 +25,7 @@ class customerApiController extends Controller
             'driverId' => 'required|alpha_num|exists:drivers,driver_id',
          ]);
 
-             $driver = Driver::where('driver_id',$validate['driverId'])->first();
+            $driver = Driver::where('driver_id',$validate['driverId'])->first();
 
             if (!$driver) {
                 return response()->json([
@@ -43,7 +44,7 @@ class customerApiController extends Controller
                 ],
             ], 200);
     }
-
+    
     public function proofOfDelivery(Transport $consignmentId, Request $request){
          if(!$request->user()){
             return response()->json([
@@ -79,8 +80,8 @@ class customerApiController extends Controller
                 'message' => 'Driver not found for this consignment',
             ], 400);
          }
-
-         if($consignment->status == 'delivered'){
+         
+        if($consignment->status == 'delivered'){
             
              if(!$pod){
                  return response()->json([
@@ -125,7 +126,7 @@ class customerApiController extends Controller
                     ],
             ], 200);
     }
-
+    
     public function invoice(Request $request){
          if(!$request->user()){
             return response()->json([
@@ -154,6 +155,7 @@ class customerApiController extends Controller
                 'message' => 'Invoice fetched successfully',
                 'data'=>[
                     'order_id'=>$consignment->order_no,
+                    'invoice'=>$consignment->documents['invoice'],
                     'invoice_no'=>$consignment->invoice_no,
                     'delivery_date'=>$consignment->delivery_date ?? 'not delivered yet',
                     'status'=>'paid',
@@ -194,38 +196,57 @@ class customerApiController extends Controller
                     'payment_method'=>'Credit Card',
                     'transaction_id'=>'TXN123456789',
                     'paid_at'=>'2024-06-15 14:30:00',
-                    'status'=>paid,
+                    'status'=>'paid',
                 ],
                 'customer_email'=>$customer->email,
                         ], 200);
     }
-    public function downloadInvoice(Request $request){
-         if(!$request->user()){
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized: please login',
-            ], 401);
-         }
-
-         $validate = $request->validate([
-            'consignmentId' => 'required|integer|exists:transports,id',
-         ]);
-
-         $consignment = Transport::where('id',$validate['consignmentId'])->where('customer_id',$request->user()->id)->first();
-             
- 
-
-        if(!$consignment->invoice){
-             return response()->json([
-                'success' => false,
-                'message' => 'Invoice not available yet',
-            ], 400);
-        }
-
-          return response()->download($consignment->documents['invoice']);
+    
+     public function downloadInvoice(Request $request)
+{
+    if (!$request->user()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized: please login',
+        ], 401);
     }
 
-     //GET url method
+    $validate = $request->validate([
+        'consignmentId' => 'required|integer|exists:transports,id',
+    ]);
+
+    $consignment = Transport::where('id', $validate['consignmentId'])
+        ->where('customer_id', $request->user()->id)
+        ->first();
+
+    if (!$consignment || empty($consignment->documents['invoice'])) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invoice not available yet',
+        ], 404);
+    }
+
+    // IMPORTANT: convert to full server path
+    $invoice = trim($consignment->documents['invoice']);
+
+// remove domain if full URL stored
+$invoice = str_replace(url('/'), '', $invoice);
+$invoice = ltrim($invoice, '/');
+    $filePath = $invoice;
+
+    if (!file_exists($filePath)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'File missing on server',
+            'data'=>trim($consignment->documents['invoice']),
+        ], 404);
+    }
+
+    return response()->download($filePath, basename($filePath), [
+        'Content-Type' => 'application/octet-stream',
+    ]);
+}
+    //GET url method
      public function invoiceDownload(Request $request)
 {
     
@@ -267,7 +288,8 @@ $invoice = ltrim($invoice, '/');
                'message' => 'Unauthorized: please login',
            ], 401);
         }
-   $validatedData = $request->validate( [
+
+        $validatedData = $request->validate( [
             'consignmentId' => 'required|integer|exists:transports,id',
             'share_via' => 'required|in:email,whatsapp',
             'receipent' => 'required|string',
@@ -285,7 +307,7 @@ $invoice = ltrim($invoice, '/');
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Invoice shared successfully',
+                     'message' => 'Invoice shared successfully',
                     'consignmentId'=>$validatedData['consignmentId'],
                     'share_via'=>$validatedData['share_via'],
                     'receipent'=>$validatedData['receipent'],
@@ -293,4 +315,7 @@ $invoice = ltrim($invoice, '/');
                     'format'=>$validatedData['format'],
                 ], 200);
             }
+            
+    //notifications
+    
 }

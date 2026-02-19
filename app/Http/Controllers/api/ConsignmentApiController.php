@@ -8,25 +8,62 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Transport;
 use App\Models\CargoType;
 use App\Models\Driver;
+use App\Notifications\sendNotification;
+use Illuminate\Support\Facades\Notification;
 
 class consignmentApiController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+         if(!$request->user()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: please login',
+            ], 401);
+         }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+          $validator = Validator::make($request->all(), [
+            'status' => 'required|in:pending,active,completed',
+        ]);
         
+        $validatedData = $validator->validated();
+        
+        $query = Transport::with('driver')->where('customer_id', $request->user()->id);
+        if ($validatedData['status'] == 'pending') {
+        $query->where('status', 'pending');
+        }
+        
+        elseif ($validatedData['status'] == 'completed') {
+            $query->where('status', 'delivered');
+        }
+        
+        elseif ($validatedData['status'] == 'active') {
+            $query->whereIn('status', [
+                'in_transit',
+                'assigned',
+                'confirmed'
+            ]);
+        }
+        $consignments = $query->get();
+
+        if(!$consignments){
+            return response()->json([
+                'success' => false,
+                'message' => 'No consignment order found for this user',
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Consignment Orders fetched successfully for customer '.$request->user()->name,
+            'count'=>count($consignments),
+            'data'=>$consignments,
+        ], 200);
+    }
+    
+    //order summary
     public function orderSummary(Request $request)
     {
         if(!$request->user()){
@@ -42,7 +79,7 @@ class consignmentApiController extends Controller
         
         $validatedData = $validator->validated();
 
-       $consignment = Transport::where('customer_id', $request->user()->id)->Where('id', $validatedData['consignmentId'])->first();
+        $consignment = Transport::where('customer_id', $request->user()->id)->Where('id', $validatedData['consignmentId'])->first();
 
         if(!$consignment){
             return response()->json([
@@ -69,12 +106,19 @@ class consignmentApiController extends Controller
                 ],
         ], 200);
     }
-        
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
 
     /**
      * Store a newly created resource in storage.
      */
-     public function store(Request $request)
+       public function store(Request $request)
     {
 
       $validator = Validator::make($request->all(), [
@@ -208,6 +252,7 @@ if ($validator->fails()) {
         $consignment->pickup_location = $ValidatedData['pickupLocation'];
         $consignment->consignment_type = "customer";
         $consignment->pickup_datetime = $ValidatedData['pickupDate'] . ' ' . $ValidatedData['pickupTime'];
+        
         $consignment->pickupLatitude = $ValidatedData['pickup_latitude'] ?? null;
         $consignment->pickupLongitude = $ValidatedData['pickup_longitude'] ?? null;
         $consignment->deliveryLatitude = $ValidatedData['delivery_latitude'] ?? null;
@@ -272,7 +317,7 @@ if ($validator->fails()) {
         $consignment->total_distance = $ValidatedData['total_distance'] ?? null;
         $consignment->total_travel_time = $ValidatedData['total_travel_time'] ?? null;
         /* ---------------- Status ---------------- */
-        $consignment->status = $ValidatedData['status'] ?? 'draft';
+        $consignment->status = $ValidatedData['status'] ?? 'pending';
         /* ---------------- Party ---------------- */
         $consignment->party_lr_no = $ValidatedData['party_lr_no'] ?? null;
 
@@ -286,8 +331,8 @@ if ($validator->fails()) {
                 }
             }
          $consignment->save();
-
-          //send notification
+         
+         //send notification
          $request->user()->notify(new sendNotification(
              'Consignment Booked Successfully',//title
              'Order No : '.$consignment->order_no.', From: '.$consignment->pickup_location.', To: '.$consignment->delivery_location,//message
@@ -300,8 +345,6 @@ if ($validator->fails()) {
             'data' => $consignment,
         ], 200);
         
-
-
     }
 
     /**
@@ -309,7 +352,12 @@ if ($validator->fails()) {
      */
     public function show(Request $request)
     {
-       
+       if(!$request->user()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: please login',
+            ], 401);
+         }
             
         $validator = Validator::make($request->all(), [
             'consignmentId' => 'required|exists:transports,id',
@@ -333,6 +381,7 @@ if ($validator->fails()) {
             ], 200);
 
     }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -345,8 +394,14 @@ if ($validator->fails()) {
     /**
      * Update the specified resource in storage.
      */
-     public function update(Request $request)
+         public function update(Request $request)
         {
+            if(!$request->user()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: please login',
+            ], 401);
+            }
     
             $validator = Validator::make($request->all(), [
             
@@ -518,12 +573,14 @@ if ($validator->fails()) {
      */
     public function destroy(Request $request)
     {
-        if(!$request->user()){
+         if(!$request->user()){
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized: please login',
             ], 401);
-         $validator = Validator::Make($request->all(),[
+         }
+            
+        $validator = Validator::Make($request->all(),[
                 'consignmentId' => 'required|exists:transports,id',
             ]);
             if($validator->fails()){
@@ -533,6 +590,7 @@ if ($validator->fails()) {
                     'errors' => $validator->errors(),
                 ],422);
             }
+            
             $validatedData = $validator->validated();
             $consignmentId = (int) $validatedData['consignmentId'];
             $consignment = Transport::find($consignmentId);
@@ -549,9 +607,8 @@ if ($validator->fails()) {
                 'message' => 'Consignment deleted successfully',
             ], 200);
     }
-    }
-
-    public function cargoTypeList(Request $request){
+    
+    public function cargoTypeList(){
         $cargoTypes = \App\Models\CargoType::all();
 
         if(!$cargoTypes){
@@ -566,48 +623,8 @@ if ($validator->fails()) {
             'data' => $cargoTypes,
         ], 200);
     }
-
-    public function shipmentTracking(Request $request)
-    {
-         if(!$request->user()){
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized: please login',
-            ], 401);
-         }
-        $validator = Validator::make($request->all(), [
-            'consignmentId' => 'required|exists:transports,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $validatedData = $validator->validated();
-        $consignment = Transport::find($validatedData['consignmentId']);
-
-        if (!$consignment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Consignment not found',
-            ], 404);
-        }
-
-        // Assuming you have a ShipmentTracking model related to the Transport model
-        $trackingInfo = $consignment->shipmentTracking; // Adjust this based on your actual relationship
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Shipment tracking information fetched successfully',
-            'data' => $trackingInfo,
-        ], 200);
-    }
-
-      public function assignedDriver(Request $request)
+    
+     public function assignedDriver(Request $request)
     {
          if(!$request->user()){
             return response()->json([
@@ -667,6 +684,8 @@ if ($validator->fails()) {
                 ],
         ], 200);
     }
+    
+    
     private function uploadConsignmentDoc(Request $request, string $field,$consignmentId)
 {
     if (!$request->hasFile($field)) {
@@ -680,4 +699,5 @@ if ($validator->fails()) {
 
     return 'assets/consignmentDocs/' . $fileName;
 }
+
 }

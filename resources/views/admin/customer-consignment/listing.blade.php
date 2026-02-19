@@ -344,6 +344,10 @@
         color: #FF9800;
     }
 
+    .action-icon.assign-vehicle {
+        color: #0f766e;
+    }
+
     /* Pagination */
     .pagination-container {
         display: flex;
@@ -523,15 +527,9 @@
                         <span>{{ $consignment->created_at ? $consignment->created_at->format('M d, Y') : 'N/A' }}</span>
                         <span style="font-weight: 600;">{{ number_format($consignment->total_amount ?? 0, 2) }}</span>
                         <div class="action-icons">
-                            @if($consignment->status == 'pending')
-                            <a href="{{ route('admin.customer-consignment.freight-assignment', $consignment->id) }}" class="action-icon freight" title="Assign Freight" style="text-decoration: none;">
-                                <i class="fas fa-truck-loading"></i>
+                            <a href="{{ route('admin.customer-consignment.assign-vehicle', $consignment->id) }}" class="action-icon assign-vehicle" title="Assign Vehicle" style="text-decoration: none;">
+                                <i class="fas fa-truck"></i>
                             </a>
-                            @elseif($consignment->status == 'assigned')
-                            <a href="{{ route('admin.customer-consignment.charges-advance', $consignment->id) }}" class="action-icon charges" title="Charges & Advance" style="text-decoration: none;">
-                                <i class="fas fa-rupee-sign"></i>
-                            </a>
-                            @endif
                             <a href="{{ route('admin.customer-consignment.show', $consignment->id) }}" class="action-icon view" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>

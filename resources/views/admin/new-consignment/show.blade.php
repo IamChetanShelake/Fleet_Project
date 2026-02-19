@@ -720,7 +720,7 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Invoice Value</span>
-                            <span class="info-value">{{ $transport->invoice_value ? number_format($transport->invoice_value, 2) : 'N/A' }}</span>
+                            <span class="info-value">{{ $transport->invoice_value ? number_format((float)$transport->invoice_value, 2) : 'N/A' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Material Type</span>
@@ -775,19 +775,19 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="info-label">Freight Charges</span>
-                            <span class="info-value">{{ $transport->freight_charges ? number_format($transport->freight_charges, 2) : 'N/A' }}</span>
+                            <span class="info-value">{{ $transport->freight_charges ? number_format((float)$transport->freight_charges, 2) : 'N/A' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Loading Charges</span>
-                            <span class="info-value">{{ $transport->loading_charges ? number_format($transport->loading_charges, 2) : 'N/A' }}</span>
+                            <span class="info-value">{{ $transport->loading_charges ? number_format((float)$transport->loading_charges, 2) : 'N/A' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Advance Paid</span>
-                            <span class="info-value">{{ $transport->advance_paid ? number_format($transport->advance_paid, 2) : '0.00' }}</span>
+                            <span class="info-value">{{ $transport->advance_paid ? number_format((float)$transport->advance_paid, 2) : '0.00' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Total Cost</span>
-                            <span class="info-value" style="color: #28a745; font-size: 18px;">{{ $transport->total_cost ? number_format($transport->total_cost, 2) : 'N/A' }}</span>
+                            <span class="info-value" style="color: #28a745; font-size: 18px;">{{ $transport->total_cost ? number_format((float)$transport->total_cost, 2) : 'N/A' }}</span>
                         </div>
                     </div>
                 </div>

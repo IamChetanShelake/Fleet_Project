@@ -1,9 +1,10 @@
-@extends('admin.layouts.app')
+@extends('admin.layout.master')
 
 @section('title', 'Driver Details')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="dashboard-wrapper">
+    <div class="dashboard-container" style="padding: 24px; width: 100%;">
 
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -149,11 +150,20 @@
                             <label class="text-muted small d-block">Address</label>
                             <span class="fw-semibold">{{ $drivingTeam->address ?? '—' }}</span>
                         </div>
-                        @if(!empty($drivingTeam->alternateMobile))
+                        @php
+                            $alternateMobiles = $drivingTeam->alternateMobile;
+                            if (is_string($alternateMobiles)) {
+                                $alternateMobiles = json_decode($alternateMobiles, true);
+                            }
+                            if (!is_array($alternateMobiles)) {
+                                $alternateMobiles = [];
+                            }
+                        @endphp
+                        @if(!empty($alternateMobiles))
                         <div class="col-12">
                             <label class="text-muted small d-block">Alternate Mobiles</label>
                             <div class="d-flex flex-wrap gap-2">
-                                @foreach($drivingTeam->alternateMobile as $alt)
+                                @foreach($alternateMobiles as $alt)
                                     <span class="badge bg-light text-dark border">
                                         <i class="fas fa-phone me-1"></i>{{ $alt }}
                                     </span>
@@ -519,6 +529,6 @@
             </form>
         </div>
     </div>
-
+    </div>
 </div>
 @endsection

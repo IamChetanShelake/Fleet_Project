@@ -3,797 +3,284 @@
 @section('title', 'Team Members')
 
 @section('content')
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: 'IBM Plex Sans', sans-serif;
-        background: #E5EAF2;
-    }
-
-    .dashboard-wrapper {
-        display: flex;
-        min-height: 100vh;
-        margin-left: 70px;
-        background: #E5EAF2;
-    }
-
-    .team-container-wrapper {
-        width: 100%;
-    }
-
-    /* Top Navbar */
-    .top-navbar {
-        background: white;
-        padding: 1rem 2rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 999;
-    }
-
-    .search-container {
-        position: relative;
-        flex: 0 0 353px;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #666262;
-        font-size: 18px;
-    }
-
-    .search-input {
-        width: 100%;
-        height: 60px;
-        border: none;
-        border-radius: 30px;
-        padding: 10px 20px 10px 55px;
-        font-size: 18px;
-        font-weight: 700;
-        color: #666262;
-        background: #fff;
-    }
-
-    .search-input::placeholder {
-        color: #666262;
-    }
-
-    .task-dropdown {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 11px 0;
-        font-size: 16px;
-        color: #000;
-        cursor: pointer;
-        border: 1px solid #6C6C6C;
-        border-radius: 10px;
-        padding: 11px 20px;
-    }
-
-    .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .btn-main-account {
-        background: #003B67;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        padding: 13px 46px;
-        font-size: 18px;
-        font-weight: 500;
-        cursor: pointer;
-    }
-
-    .icon-btn {
-        width: 50px;
-        height: 48px;
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .icon-btn i {
-        font-size: 22px;
-        color: #000;
-    }
-
-    .user-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: #ccc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-
-    .user-avatar i {
-        font-size: 30px;
-        color: #666;
-    }
-
-    /* Team Members Container */
-    .team-container {
-        padding: 50px 40px;
-        width: 100%;
-    }
-
-    /* Header Section */
-    .team-header {
-        background: #fff;
-        border: 1px solid #6C6C6C;
-        border-radius: 10px;
-        padding: 12px 37px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-    }
-
-    .team-header h1 {
-        font-size: 22px;
-        font-weight: 500;
-        color: #003B67;
-        margin: 0;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 20px;
-    }
-
-    .btn-view-roles {
-        border: 1px solid #6C6C6C;
-        border-radius: 10px;
-        background: transparent;
-        padding: 9px 14px;
-        font-size: 16px;
-        color: #000;
-        cursor: pointer;
-    }
-
-    .btn-add-new {
-        border: 1px solid #6C6C6C;
-        border-radius: 10px;
-        background: transparent;
-        padding: 9px 14px;
-        font-size: 16px;
-        color: #000;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-    }
-
-    /* Main Content Area */
-    .team-content {
-        display: flex;
-        gap: 48px;
-    }
-
-    /* Left Sidebar - User Roles */
-    .roles-sidebar {
-        flex: 0 0 194px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .roles-title {
-        font-size: 24px;
-        font-weight: 400;
-        color: #003B67;
-        text-align: center;
-        margin-bottom: 0;
-        text-transform: uppercase;
-    }
-
-    .role-btn {
-        width: 100%;
-        height: 60px;
-        border: 1px solid #6C6C6C;
-        border-radius: 10px;
-        background: #fff;
-        font-size: 18px;
-        font-weight: 400;
-        color: #000;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .role-btn.active {
-        border: 3px solid #317FF1;
-        font-weight: 600;
-        color: #317FF1;
-    }
-
-    .role-btn:hover {
-        background: #f8f9fa;
-    }
-
-    /* Vertical Divider Line */
-    .vertical-line {
-        width: 1px;
-        background: #317FF1;
-        margin: 0 11px;
-    }
-
-    /* Right Content Area */
-    .members-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    /* Status Tabs */
-    .status-tabs {
-        display: flex;
-        gap: 123px;
-        padding: 20px 30px;
-        border-bottom: 2px solid #E5EAF2;
-    }
-
-    .status-tabs::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: var(--underline-left, 27px);
-        width: var(--underline-width, 126px);
-        height: 4px;
-        background: #33C17F;
-        transition: left 0.3s ease, width 0.3s ease;
-    }
-
-    .tabs-container {
-        display: flex;
-        gap: 90px;
-        padding-left: 33px;
-    }
-
-    .tab {
-        font-size: 18px;
-        font-weight: 500;
-        cursor: pointer;
-        background: none;
-        border: none;
-        padding: 0;
-    }
-
-    .tab.all {
-        color: #33C17F;
-    }
-
-    .tab.active-status {
-        color: #ED5A68;
-    }
-
-    .tab.inactive {
-        color: #F4CE5B;
-    }
-
-    /* Table Header */
-    .table-header {
-        background: #003B67;
-        border-radius: 10px;
-        padding: 19px 15px;
-        display: grid;
-        grid-template-columns: 122px 168px 178px 155px 120px 140px;
-        gap: 57px;
-    }
-
-    .table-header span {
-        font-size: 16px;
-        font-weight: 500;
-        color: #fff;
-        text-align: left;
-    }
-
-    /* Member Row */
-    .tab.active-tab {
-        font-weight: 600;
-    }
-
-    .member-row {
-        background: #fff;
-        border: 1px solid #003B67;
-        border-radius: 10px;
-        padding: 15px;
-        display: grid;
-        grid-template-columns: 122px 168px 178px 155px 120px 140px;
-        gap: 53px;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .member-row.hidden {
-        display: none;
-    }
-
-    .member-name {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .member-icon {
-        width: 25px;
-        height: 25px;
-        background: #317FF1;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .member-icon i {
-        color: #fff;
-        font-size: 12px;
-    }
-
-    .member-row span {
-        font-size: 14px;
-        color: #000;
-    }
-
-    .status-toggle {
-        width: 33px;
-        height: 16px;
-        background: #B5B5B5;
-        border-radius: 8px;
-        position: relative;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    .status-toggle.active {
-        background: #15B700;
-    }
-
-    .status-toggle::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 16px;
-        height: 16px;
-        background: #fff;
-        border: 0.25px solid #B5B5B5;
-        border-radius: 50%;
-        transition: left 0.3s;
-    }
-
-    .status-toggle.active::after {
-        left: calc(100% - 16px);
-    }
-
-    /* Action Icons */
-    .action-icons {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .action-icon {
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 16px;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-    }
-
-    .action-icon.view {
-        color: #317FF1;
-        background: rgba(49, 127, 241, 0.1);
-    }
-
-    .action-icon.edit {
-        color: #F4CE5B;
-        background: rgba(244, 206, 91, 0.1);
-    }
-
-    .action-icon.delete {
-        color: #ED5A68;
-        background: rgba(237, 90, 104, 0.1);
-    }
-
-    .action-icon:hover {
-        transform: scale(1.1);
-    }
-
-    /* Pagination */
-    .pagination-controls {
-        border: 1px solid #003B67;
-        border-radius: 10px;
-        padding: 18px 16px;
-        background: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .entries-control {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .entries-control span {
-        font-size: 14px;
-        color: #000;
-    }
-
-    .entries-dropdown {
-        border: 1.5px solid #33C17F;
-        border-radius: 10px;
-        padding: 5px 10px;
-        font-size: 14px;
-        background: #fff;
-        cursor: pointer;
-    }
-
-    .showing-text {
-        font-size: 14px;
-        color: #000;
-    }
-
-    .pagination-btns {
-        display: flex;
-        gap: 20px;
-    }
-
-    .pagination-btn {
-        border: 1.5px solid #ED5A68;
-        border-radius: 10px;
-        padding: 5px 27px;
-        font-size: 14px;
-        color: #000;
-        background: #fff;
-        cursor: pointer;
-    }
-
-    .pagination-btn.next {
-        border-color: #F4CE5B;
-    }
-</style>
-
 <div class="dashboard-wrapper">
-<div class="team-container-wrapper">
+    <div class="dashboard-container" style="padding: 24px; width: 100%;">
 
-    <!-- Team Members Container -->
-    <div class="team-container">
-        <!-- Header -->
-        <div class="team-header">
-            <h1>My Team</h1>
-            <div class="header-actions">
-                <button class="btn-view-roles" onclick="openRolesModal()">View Roles</button>
-                <a href="{{ route('admin.team-members.create') }}" class="btn-add-new">
-                    <i class="fas fa-plus"></i> Add new
-                </a>
+    {{-- Header --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 fw-bold"><i class="fas fa-users me-2 text-primary"></i>Team Members</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" onclick="openRolesModal()">
+                <i class="fas fa-user-tag me-1"></i> View Roles
+            </button>
+            <a href="{{ route('admin.team-members.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add New Member
+            </a>
+        </div>
+    </div>
+
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- Summary Stats --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="h3 fw-bold text-primary mb-0">{{ $teamMembers->count() }}</div>
+                <small class="text-muted">Total Members</small>
             </div>
         </div>
-
-        <!-- Main Content -->
-        <div class="team-content">
-            <!-- Left Sidebar - Roles -->
-            <div class="roles-sidebar">
-                <h2 class="roles-title">User Roles</h2>
-                <button class="role-btn active" data-role="all">All</button>
-                @php
-                    $roles = \App\Models\Role::where('is_active', true)->get();
-                @endphp
-                @foreach($roles as $role)
-                    <button class="role-btn" data-role="{{ $role->slug }}">{{ $role->name }}</button>
-                @endforeach
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="h3 fw-bold text-success mb-0">{{ $teamMembers->where('status', 'Active')->count() }}</div>
+                <small class="text-muted">Active</small>
             </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="h3 fw-bold text-warning mb-0">{{ $teamMembers->where('status', 'Inactive')->count() }}</div>
+                <small class="text-muted">Inactive</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="h3 fw-bold text-info mb-0">{{ \App\Models\Role::where('is_active', true)->count() }}</div>
+                <small class="text-muted">Roles</small>
+            </div>
+        </div>
+    </div>
 
-            <!-- Vertical Line -->
-            <div class="vertical-line"></div>
-
-            <!-- Right Content -->
-            <div class="members-content">
-                <!-- Status Tabs -->
-                <div class="status-tabs">
-                    <div class="tabs-container">
-                        <button class="tab all active-tab" data-status="all">All (<span id="count-all">{{ $teamMembers->count() }}</span>)</button>
-                        <button class="tab active-status" data-status="active">Active (<span id="count-active">{{ $teamMembers->where('status', 'Active')->count() }}</span>)</button>
-                        <button class="tab inactive" data-status="inactive">Inactive (<span id="count-inactive">{{ $teamMembers->where('status', 'Inactive')->count() }}</span>)</button>
-                    </div>
+    {{-- Filters --}}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <label class="form-label small text-muted mb-1">Search</label>
+                    <input type="text" id="searchInput" class="form-control form-control-sm"
+                        placeholder="Name, email, mobile...">
                 </div>
-
-                <!-- Table Header -->
-                <div class="table-header">
-                    <span>Name</span>
-                    <span>Email</span>
-                    <span>Mobile</span>
-                    <span>Role</span>
-                    <span>Status</span>
-                    <span>Actions</span>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Role</label>
+                    <select id="roleFilter" class="form-select form-select-sm">
+                        <option value="all">All Roles</option>
+                        @php
+                            $roles = \App\Models\Role::where('is_active', true)->get();
+                        @endphp
+                        @foreach($roles as $role)
+                            <option value="{{ $role->slug }}">{{ $role->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
-
-                <!-- Dynamic Member Rows -->
-                @forelse($teamMembers as $member)
-                <div class="member-row" data-role="{{ $member->role ? $member->role->slug : 'no-role' }}" data-status="{{ strtolower($member->status) }}">
-                    <div class="member-name">
-                        <div class="member-icon">
-                            @if($member->profile_image)
-                                <img src="{{ asset($member->profile_image) }}" alt="{{ $member->name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-                            @else
-                                <i class="fas fa-user"></i>
-                            @endif
-                        </div>
-                        <span>{{ $member->name }}</span>
-                    </div>
-                    <span>{{ $member->email }}</span>
-                    <span>{{ $member->mobile ?: 'N/A' }}</span>
-                    <span>{{ $member->role_name }}</span>
-                    <div class="status-toggle {{ $member->status == 'Active' ? 'active' : '' }}" onclick="toggleStatus(this)" data-user-id="{{ $member->id }}"></div>
-                    <div class="action-icons">
-                        <a href="{{ route('admin.team-members.show', $member->id) }}" class="action-icon view" title="View">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{{ route('admin.team-members.edit', $member->id) }}" class="action-icon edit" title="Edit">
-                            <i class="fas fa-pen"></i>
-                        </a>
-                        <form action="{{ route('admin.team-members.destroy', $member->id) }}" method="POST" style="display: inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="action-icon delete" title="Delete" onclick="return confirm('Are you sure you want to delete this member?')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Status</label>
+                    <select id="statusFilter" class="form-select form-select-sm">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
                 </div>
-                @empty
-                <div class="member-row">
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
-                        No team members found. <a href="{{ route('admin.team-members.create') }}">Add your first team member</a>.
-                    </div>
-                </div>
-                @endforelse
-
-                <!-- Pagination -->
-                <div class="pagination-controls">
-                    <div class="entries-control">
-                        <span>Show Entries</span>
-                        <select class="entries-dropdown">
-                            <option>15</option>
-                            <option>25</option>
-                            <option>50</option>
-                        </select>
-                    </div>
-                    <span class="showing-text">Showing 1 to {{ $teamMembers->count() }} of {{ $teamMembers->count() }}</span>
-                    <div class="pagination-btns">
-                        <button class="pagination-btn">Previous</button>
-                        <button class="pagination-btn next">Next</button>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">&nbsp;</label>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="applyFilters()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+    {{-- Table --}}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50">#</th>
+                            <th>Member</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th width="130">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($teamMembers as $index => $member)
+                        <tr class="member-row" 
+                            data-name="{{ strtolower($member->name) }}"
+                            data-email="{{ strtolower($member->email) }}"
+                            data-mobile="{{ strtolower($member->mobile ?? '') }}"
+                            data-role="{{ $member->role ? $member->role->slug : 'no-role' }}"
+                            data-status="{{ strtolower($member->status) }}">
+                            <td class="text-muted small">{{ $index + 1 }}</td>
+
+                            {{-- Member Name + Avatar --}}
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if($member->profile_image)
+                                        <img src="{{ asset($member->profile_image) }}"
+                                            alt="{{ $member->name }}"
+                                            class="rounded-circle border"
+                                            style="width:38px; height:38px; object-fit:cover;"
+                                            onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($member->name) }}&size=38&background=4e73df&color=fff'">
+                                    @else
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                                            style="width:38px; height:38px; font-size:1rem; flex-shrink:0;">
+                                            {{ strtoupper(substr($member->name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <div class="fw-semibold">{{ $member->name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td><span class="small">{{ $member->email }}</span></td>
+
+                            <td><span class="small">{{ $member->mobile ?: '—' }}</span></td>
+
+                            <td>
+                                <span class="badge bg-secondary" style="font-size:0.75rem;">
+                                    {{ $member->role_name }}
+                                </span>
+                            </td>
+
+                            {{-- Status --}}
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input status-toggle" type="checkbox"
+                                        {{ $member->status == 'Active' ? 'checked' : '' }}
+                                        onchange="toggleStatus(this, {{ $member->id }})"
+                                        style="width: 3em; height: 1.5em;">
+                                    <label class="form-check-label small ms-2">
+                                        {{ $member->status }}
+                                    </label>
+                                </div>
+                            </td>
+
+                            {{-- Actions --}}
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ route('admin.team-members.show', $member->id) }}"
+                                       class="btn btn-outline-info btn-sm" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('admin.team-members.edit', $member->id) }}"
+                                       class="btn btn-outline-warning btn-sm" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('admin.team-members.destroy', $member->id) }}"
+                                          method="POST"
+                                          onsubmit="return confirm('Delete member {{ addslashes($member->name) }}?')"
+                                          style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-users fa-3x mb-3 d-block opacity-25"></i>
+                                <span class="fs-5">No team members found.</span>
+                                <br>
+                                <a href="{{ route('admin.team-members.create') }}" class="btn btn-primary btn-sm mt-2">
+                                    <i class="fas fa-plus me-1"></i> Add First Member
+                                </a>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    </div>
 </div>
 
 <!-- Roles Modal -->
-<div id="rolesModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Manage Roles</h3>
-            <button class="modal-close" onclick="closeRolesModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <!-- Add New Role Form -->
-            <div class="add-role-section">
-                <h4>Add New Role</h4>
-                <form id="addRoleForm">
-                    <div class="form-row">
-                        <input type="text" id="roleName" placeholder="Role Name" required>
-                        <input type="text" id="roleDescription" placeholder="Description (optional)">
-                        <button type="submit" class="btn-add-role">Add Role</button>
-                    </div>
-                </form>
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rolesModalLabel">
+                    <i class="fas fa-user-tag me-2"></i>Manage Roles
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div class="modal-body">
+                <!-- Add New Role Form -->
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Role</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="addRoleForm">
+                            <div class="row g-2">
+                                <div class="col-md-5">
+                                    <input type="text" id="roleName" class="form-control form-control-sm"
+                                        placeholder="Role Name" required>
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="text" id="roleDescription" class="form-control form-control-sm"
+                                        placeholder="Description (optional)">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-plus me-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-            <!-- Roles List -->
-            <div class="roles-list">
-                <h4>Existing Roles</h4>
-                <div id="rolesContainer">
-                    <p style="text-align: center; color: #666;">Loading roles...</p>
+                <!-- Roles List -->
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Existing Roles</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="rolesContainer">
+                            <p class="text-center text-muted">Loading roles...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-}
-
-.modal-content {
-    background: #fff;
-    border-radius: 15px;
-    width: 100%;
-    max-width: 750px;
-    max-height: 97vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 30px;
-    border-bottom: 1px solid #eee;
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: #003B67;
-    font-size: 24px;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 30px;
-    cursor: pointer;
-    color: #666;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-body {
-    padding: 30px;
-}
-
-.add-role-section {
-    margin-bottom: 30px;
-}
-
-.add-role-section h4 {
-    color: #003B67;
-    margin-bottom: 15px;
-    font-size: 18px;
-}
-
-.form-row {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
-
-.form-row input {
-    flex: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-.btn-add-role {
-    background: #317FF1;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.btn-add-role:hover {
-    background: #2669cc;
-}
-
-.roles-list h4 {
-    color: #003B67;
-    margin-bottom: 15px;
-    font-size: 18px;
-}
-
-#rolesContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.role-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    background: #f9f9f9;
-}
-
-.role-info h5 {
-    margin: 0 0 5px 0;
-    color: #003B67;
-    font-size: 16px;
-}
-
-.role-info p {
-    margin: 0;
-    color: #666;
-    font-size: 14px;
-}
-
-.role-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-role-action {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.btn-edit-role {
-    background: #F4CE5B;
-    color: #000;
-}
-
-.btn-delete-role {
-    background: #ED5A68;
-    color: #fff;
-}
-</style>
 
 <script>
 // CSRF Token for AJAX requests
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
 // Toggle Status Function
-function toggleStatus(element) {
-    const userId = element.getAttribute('data-user-id');
-    const isActive = element.classList.contains('active');
-    const newStatus = isActive ? 'Inactive' : 'Active';
+function toggleStatus(element, userId) {
+    const isActive = element.checked;
+    const newStatus = isActive ? 'Active' : 'Inactive';
 
     // Make AJAX request to update status
     fetch(`/admin/team-members/${userId}/toggle-status`, {
@@ -807,172 +294,102 @@ function toggleStatus(element) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            element.classList.toggle('active');
             const row = element.closest('.member-row');
             row.setAttribute('data-status', newStatus.toLowerCase());
-            updateCounts();
-            filterMembers();
+            const label = row.querySelector('.form-check-label');
+            if (label) {
+                label.textContent = newStatus;
+            }
+            updateStats();
         } else {
             alert('Failed to update status');
+            element.checked = !isActive; // Revert
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('Failed to update status');
+        element.checked = !isActive; // Revert
     });
 }
 
-// Role Filter Functionality
-document.querySelectorAll('.role-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        // Remove active class from all buttons
-        document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-        // Add active class to clicked button
-        this.classList.add('active');
-        // Filter members and update counts
-        filterMembers();
-        updateCounts();
-    });
-});
+// Filter Functions
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const roleFilter = document.getElementById('roleFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
 
-// Status Tab Functionality
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        // Remove active-tab class from all tabs
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active-tab'));
-        // Add active-tab class to clicked tab
-        this.classList.add('active-tab');
-        // Update underline position
-        updateUnderline(this);
-        // Filter members
-        filterMembers();
-    });
-});
+    const rows = document.querySelectorAll('.member-row');
+    let visibleCount = 0;
 
-// Update underline position based on active tab
-function updateUnderline(activeTab) {
-    const statusTabs = document.querySelector('.status-tabs');
-    const tabs = document.querySelectorAll('.tab');
-    const index = Array.from(tabs).indexOf(activeTab);
-
-    // Remove existing underline styles
-    statusTabs.style.setProperty('--underline-left', '27px');
-    statusTabs.style.setProperty('--underline-width', '126px');
-
-    // Calculate new position based on active tab
-    if (index === 0) { // All
-        statusTabs.style.setProperty('--underline-left', '27px');
-        statusTabs.style.setProperty('--underline-width', '126px');
-    } else if (index === 1) { // Active
-        statusTabs.style.setProperty('--underline-left', '160px');
-        statusTabs.style.setProperty('--underline-width', '140px');
-    } else if (index === 2) { // Inactive
-        statusTabs.style.setProperty('--underline-left', '330px');
-        statusTabs.style.setProperty('--underline-width', '150px');
-    }
-}
-
-// Filter Members Function
-function filterMembers() {
-    const activeRole = document.querySelector('.role-btn.active').getAttribute('data-role');
-    const activeStatus = document.querySelector('.tab.active-tab').getAttribute('data-status');
-    const memberRows = document.querySelectorAll('.member-row');
-
-    memberRows.forEach(row => {
-        const memberRole = row.getAttribute('data-role');
-        const memberStatus = row.getAttribute('data-status');
+    rows.forEach(row => {
+        const name = row.getAttribute('data-name');
+        const email = row.getAttribute('data-email');
+        const mobile = row.getAttribute('data-mobile');
+        const role = row.getAttribute('data-role');
+        const status = row.getAttribute('data-status');
 
         let showRow = true;
 
-        // Filter by role
-        if (activeRole !== 'all' && memberRole !== activeRole) {
+        // Search filter
+        if (searchTerm && !name.includes(searchTerm) && !email.includes(searchTerm) && !mobile.includes(searchTerm)) {
             showRow = false;
         }
 
-        // Filter by status
-        if (activeStatus !== 'all' && memberStatus !== activeStatus) {
+        // Role filter
+        if (roleFilter !== 'all' && role !== roleFilter) {
+            showRow = false;
+        }
+
+        // Status filter
+        if (statusFilter !== 'all' && status !== statusFilter) {
             showRow = false;
         }
 
         if (showRow) {
-            row.classList.remove('hidden');
+            row.style.display = '';
+            visibleCount++;
         } else {
-            row.classList.add('hidden');
+            row.style.display = 'none';
         }
     });
 
-    updatePaginationText();
-}
-
-// Update Counts (The Fix)
-// This function now calculates counts based on the Selected Role, not the visible rows
-function updateCounts() {
-    const activeRole = document.querySelector('.role-btn.active').getAttribute('data-role');
-    const allRows = document.querySelectorAll('.member-row');
-
-    let totalRoleCount = 0;
-    let activeRoleCount = 0;
-    let inactiveRoleCount = 0;
-
-    allRows.forEach(row => {
-        const memberRole = row.getAttribute('data-role');
-        const memberStatus = row.getAttribute('data-status');
-
-        // Check if row belongs to the currently selected role (or "All")
-        if (activeRole === 'all' || memberRole === activeRole) {
-            totalRoleCount++;
-
-            if (memberStatus === 'active') {
-                activeRoleCount++;
-            } else if (memberStatus === 'inactive') {
-                inactiveRoleCount++;
-            }
-        }
-    });
-
-    document.getElementById('count-all').textContent = totalRoleCount;
-    document.getElementById('count-active').textContent = activeRoleCount;
-    document.getElementById('count-inactive').textContent = inactiveRoleCount;
-}
-
-// Update Pagination Text
-function updatePaginationText() {
-    const visibleRows = document.querySelectorAll('.member-row:not(.hidden)');
-    const showingText = document.querySelector('.showing-text');
-    const count = visibleRows.length;
-
-    if (count > 0) {
-        showingText.textContent = `Showing 1 to ${count} of ${count}`;
-    } else {
-        showingText.textContent = 'Showing 0 to 0 of 0';
+    // Update showing text
+    const showingText = document.querySelector('.card-footer small');
+    if (showingText) {
+        showingText.textContent = `Showing ${visibleCount} of ${rows.length} members`;
     }
 }
 
-// Initialize counts on page load
-updateCounts();
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('roleFilter').value = 'all';
+    document.getElementById('statusFilter').value = 'all';
+    applyFilters();
+}
 
-// Initialize underline position
-const initialActiveTab = document.querySelector('.tab.active-tab');
-if (initialActiveTab) {
-    updateUnderline(initialActiveTab);
+// Update Stats
+function updateStats() {
+    const rows = document.querySelectorAll('.member-row');
+    const total = rows.length;
+    const active = Array.from(rows).filter(row => row.getAttribute('data-status') === 'active').length;
+    const inactive = total - active;
+
+    // Update stat cards
+    const statCards = document.querySelectorAll('.card.border-0.shadow-sm.text-center');
+    if (statCards.length >= 3) {
+        statCards[0].querySelector('.h3').textContent = total;
+        statCards[1].querySelector('.h3').textContent = active;
+        statCards[2].querySelector('.h3').textContent = inactive;
+    }
 }
 
 // Modal Functions
 function openRolesModal() {
-    document.getElementById('rolesModal').style.display = 'flex';
+    const modal = new bootstrap.Modal(document.getElementById('rolesModal'));
+    modal.show();
     loadRoles();
 }
-
-function closeRolesModal() {
-    document.getElementById('rolesModal').style.display = 'none';
-}
-
-// Close modal when clicking outside
-document.getElementById('rolesModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRolesModal();
-    }
-});
 
 // Load roles from server
 function loadRoles() {
@@ -989,12 +406,12 @@ function loadRoles() {
                 displayRoles(data.roles);
             } else {
                 console.error('Invalid roles data:', data);
-                document.getElementById('rolesContainer').innerHTML = '<p style="color: red; text-align: center;">Failed to load roles. Please try again.</p>';
+                document.getElementById('rolesContainer').innerHTML = '<p class="text-danger text-center">Failed to load roles. Please try again.</p>';
             }
         })
         .catch(error => {
             console.error('Error loading roles:', error);
-            document.getElementById('rolesContainer').innerHTML = '<p style="color: red; text-align: center;">Error loading roles: ' + error.message + '</p>';
+            document.getElementById('rolesContainer').innerHTML = '<p class="text-danger text-center">Error loading roles: ' + error.message + '</p>';
         });
 }
 
@@ -1005,21 +422,25 @@ function displayRoles(roles) {
     container.innerHTML = '';
 
     if (roles.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #666;">No roles found.</p>';
+        container.innerHTML = '<p class="text-center text-muted">No roles found.</p>';
         return;
     }
 
     roles.forEach(role => {
         const roleElement = document.createElement('div');
-        roleElement.className = 'role-item';
+        roleElement.className = 'd-flex justify-content-between align-items-center p-2 border-bottom';
         roleElement.innerHTML = `
-            <div class="role-info">
-                <h5>${role.name}</h5>
-                <p>${role.description || 'No description'}</p>
+            <div>
+                <strong class="text-primary">${role.name}</strong>
+                ${role.description ? `<br><small class="text-muted">${role.description}</small>` : ''}
             </div>
-            <div class="role-actions">
-                <button class="btn-role-action btn-edit-role" onclick="editRole(${role.id})">Edit</button>
-                <button class="btn-role-action btn-delete-role" onclick="deleteRole(${role.id})">Delete</button>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-warning" onclick="editRole(${role.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-outline-danger" onclick="deleteRole(${role.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         `;
         container.appendChild(roleElement);
@@ -1051,7 +472,7 @@ document.getElementById('addRoleForm').addEventListener('submit', function(e) {
             document.getElementById('roleName').value = '';
             document.getElementById('roleDescription').value = '';
             loadRoles(); // Reload roles list
-            updateRoleButtons(); // Update the sidebar buttons
+            updateRoleFilter(); // Update the role filter dropdown
         } else {
             alert('Failed to create role');
         }
@@ -1062,86 +483,39 @@ document.getElementById('addRoleForm').addEventListener('submit', function(e) {
     });
 });
 
-// Update role buttons in sidebar
-function updateRoleButtons() {
+// Update role filter dropdown
+function updateRoleFilter() {
     fetch('/admin/roles')
         .then(response => response.json())
         .then(data => {
-            const rolesSidebar = document.querySelector('.roles-sidebar');
-            const existingButtons = rolesSidebar.querySelectorAll('.role-btn');
-
-            // Keep only the 'All' button and remove others
-            existingButtons.forEach(button => {
-                if (button.getAttribute('data-role') !== 'all') {
-                    button.remove();
-                }
-            });
-
-            // Add role buttons
+            const roleFilter = document.getElementById('roleFilter');
+            const currentValue = roleFilter.value;
+            
+            // Keep the first option (All Roles)
+            roleFilter.innerHTML = '<option value="all">All Roles</option>';
+            
+            // Add role options
             data.roles.forEach(role => {
-                const slug = role.slug;
-                if (!document.querySelector(`[data-role="${slug}"]`)) {
-                    const button = document.createElement('button');
-                    button.className = 'role-btn';
-                    button.setAttribute('data-role', slug);
-                    button.textContent = role.name;
-                    rolesSidebar.appendChild(button);
-                }
+                const option = document.createElement('option');
+                option.value = role.slug;
+                option.textContent = role.name;
+                roleFilter.appendChild(option);
             });
-
-            // Re-attach event listeners to new buttons
-            document.querySelectorAll('.role-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
-                    this.classList.add('active');
-                    // Filter members
-                    filterMembers();
-                });
-            });
+            
+            // Restore selected value
+            roleFilter.value = currentValue;
         })
         .catch(error => {
-            console.error('Error updating role buttons:', error);
+            console.error('Error updating role filter:', error);
         });
 }
 
 // Edit role functionality
 function editRole(roleId) {
-    // Find the role element
-    const roleElement = document.querySelector(`[onclick="editRole(${roleId})"]`).closest('.role-item');
-    const roleName = roleElement.querySelector('h5').textContent;
-    const roleDescription = roleElement.querySelector('p').textContent;
+    const roleName = prompt('Enter new role name:');
+    if (!roleName) return;
 
-    // Create edit form
-    const editForm = `
-        <div class="edit-role-form" style="margin-top: 15px; padding: 15px; background: #f0f8ff; border-radius: 8px; border: 1px solid #317FF1;">
-            <h6 style="margin: 0 0 10px 0; color: #003B67;">Edit Role</h6>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="editRoleName" value="${roleName}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                <input type="text" id="editRoleDescription" value="${roleDescription === 'No description' ? '' : roleDescription}" placeholder="Description (optional)" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                <button onclick="saveRoleEdit(${roleId})" style="background: #317FF1; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Save</button>
-                <button onclick="cancelRoleEdit()" style="background: #666; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Cancel</button>
-            </div>
-        </div>
-    `;
-
-    // Remove any existing edit forms
-    document.querySelectorAll('.edit-role-form').forEach(form => form.remove());
-
-    // Add edit form after the role element
-    roleElement.insertAdjacentHTML('afterend', editForm);
-}
-
-// Save role edit
-function saveRoleEdit(roleId) {
-    const newName = document.getElementById('editRoleName').value.trim();
-    const newDescription = document.getElementById('editRoleDescription').value.trim();
-
-    if (!newName) {
-        alert('Role name is required');
-        return;
-    }
+    const roleDescription = prompt('Enter description (optional):');
 
     fetch(`/admin/roles/${roleId}`, {
         method: 'PUT',
@@ -1150,8 +524,8 @@ function saveRoleEdit(roleId) {
             'X-CSRF-TOKEN': csrfToken
         },
         body: JSON.stringify({
-            name: newName,
-            description: newDescription
+            name: roleName,
+            description: roleDescription
         })
     })
     .then(response => response.json())
@@ -1159,8 +533,7 @@ function saveRoleEdit(roleId) {
         if (data.success) {
             alert('Role updated successfully!');
             loadRoles(); // Reload roles list
-            updateRoleButtons(); // Update the sidebar buttons
-            cancelRoleEdit(); // Remove edit form
+            updateRoleFilter(); // Update the role filter dropdown
         } else {
             alert('Failed to update role: ' + (data.message || 'Unknown error'));
         }
@@ -1169,11 +542,6 @@ function saveRoleEdit(roleId) {
         console.error('Error:', error);
         alert('Failed to update role');
     });
-}
-
-// Cancel role edit
-function cancelRoleEdit() {
-    document.querySelectorAll('.edit-role-form').forEach(form => form.remove());
 }
 
 // Delete role functionality
@@ -1190,7 +558,7 @@ function deleteRole(roleId) {
             if (data.success) {
                 alert('Role deleted successfully!');
                 loadRoles(); // Reload roles list
-                updateRoleButtons(); // Update the sidebar buttons
+                updateRoleFilter(); // Update the role filter dropdown
             } else {
                 alert('Failed to delete role: ' + (data.message || 'Unknown error'));
             }
@@ -1201,5 +569,13 @@ function deleteRole(roleId) {
         });
     }
 }
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for real-time filtering
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('roleFilter').addEventListener('change', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+});
 </script>
 @endsection

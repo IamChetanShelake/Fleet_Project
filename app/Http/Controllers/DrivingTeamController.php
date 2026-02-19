@@ -142,7 +142,7 @@ class DrivingTeamController extends Controller
         // Defaults
         $data['status']      = $request->input('status', 'off_duty');
         $data['activeStatus']= $request->input('activeStatus', 'active');
-        $data['kyc_status']  = $request->input('kyc_status', 'pending');
+        $data['kyc_status']  = $request->input('kyc_status', 'approved'); // Admin-created drivers are auto-approved
         $data['createdBy']   = 'admin';
 
         // File uploads

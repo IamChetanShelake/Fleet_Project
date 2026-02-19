@@ -3,7 +3,8 @@
 @section('title', 'Drivers')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="dashboard-wrapper">
+    <div class="dashboard-container" style="padding: 24px; width: 100%;">
 
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -123,15 +124,13 @@
                             <th>Driver</th>
                             <th>Driver ID</th>
                             <th>Phone</th>
-                            <th>Type</th>
                             <th>Country</th>
                             <th>License No.</th>
                             <th>License Expiry</th>
-                            <th>Duty Status</th>
                             <th>Active</th>
                             <th>KYC</th>
                             <th>Trips</th>
-                            <th>Gatepasses</th>
+                            <th>Created By</th>
                             <th width="130">Actions</th>
                         </tr>
                     </thead>
@@ -166,12 +165,17 @@
 
                             <td>
                                 <div>{{ $driver->phone }}</div>
-                                @if(!empty($driver->alternateMobile) && count($driver->alternateMobile))
-                                    <small class="text-muted">+{{ count($driver->alternateMobile) }} alt</small>
+                                @php
+                                    $altMobiles = $driver->alternateMobile;
+                                    if (is_string($altMobiles) && !empty($altMobiles)) {
+                                        $altMobiles = json_decode($altMobiles, true);
+                                    }
+                                    $altCount = is_array($altMobiles) ? count($altMobiles) : 0;
+                                @endphp
+                                @if($altCount > 0)
+                                    <small class="text-muted">+{{ $altCount }} alt</small>
                                 @endif
                             </td>
-
-                            <td><span class="text-muted small">{{ $driver->driverType ?? '—' }}</span></td>
 
                             <td>
                                 <span class="badge bg-{{ ($driver->countryLevel ?? 'local') === 'international' ? 'info' : 'secondary' }} text-uppercase" style="font-size:0.65rem;">
@@ -202,20 +206,6 @@
                                 @endif
                             </td>
 
-                            {{-- Duty Status --}}
-                            <td>
-                                @php
-                                    $sc = match($driver->status ?? 'off_duty') {
-                                        'on_duty'  => 'success',
-                                        'on_leave' => 'warning',
-                                        default    => 'secondary',
-                                    };
-                                @endphp
-                                <span class="badge bg-{{ $sc }}">
-                                    {{ ucwords(str_replace('_', ' ', $driver->status ?? 'off_duty')) }}
-                                </span>
-                            </td>
-
                             {{-- Active Status --}}
                             <td>
                                 <span class="badge bg-{{ ($driver->activeStatus ?? 'active') === 'active' ? 'primary' : 'danger' }}">
@@ -243,19 +233,23 @@
 
                             <td class="text-center fw-semibold">{{ $driver->total_trips ?? 0 }}</td>
 
-                            {{-- Gatepasses --}}
+                            {{-- Created By --}}
                             <td>
-                                <div class="d-flex gap-1 flex-wrap">
-                                    @if($driver->MicGatepass === 'yes')
-                                        <span class="badge bg-success" style="font-size:0.6rem;" title="MIC Gatepass">MIC</span>
-                                    @endif
-                                    @if($driver->RlcGatepass === 'yes')
-                                        <span class="badge bg-success" style="font-size:0.6rem;" title="RLC Gatepass">RLC</span>
-                                    @endif
-                                    @if($driver->MicGatepass !== 'yes' && $driver->RlcGatepass !== 'yes')
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </div>
+                                @php
+                                    $createdByBadge = match($driver->createdBy ?? 'admin') {
+                                        'admin' => 'primary',
+                                        'self'  => 'success',
+                                        default => 'secondary',
+                                    };
+                                    $createdByLabel = match($driver->createdBy ?? 'admin') {
+                                        'admin' => 'Admin',
+                                        'self'  => 'Self',
+                                        default => '—',
+                                    };
+                                @endphp
+                                <span class="badge bg-{{ $createdByBadge }}" style="font-size:0.65rem;">
+                                    {{ $createdByLabel }}
+                                </span>
                             </td>
 
                             {{-- Actions --}}
@@ -283,7 +277,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="14" class="text-center py-5 text-muted">
+                            <td colspan="12" class="text-center py-5 text-muted">
                                 <i class="fas fa-users fa-3x mb-3 d-block opacity-25"></i>
                                 <span class="fs-5">No drivers found.</span>
                                 @if(request()->hasAny(['search','status','activeStatus','kyc_status','countryLevel']))
@@ -316,6 +310,6 @@
         </div>
         @endif
     </div>
-
+    </div>
 </div>
 @endsection
